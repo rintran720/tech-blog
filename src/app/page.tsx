@@ -2,20 +2,15 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Clock, User, ArrowRight, BookOpen } from "lucide-react";
-import { getFeaturedPosts, getAllPosts } from "@/lib/blog-data";
+import { ArrowRight, BookOpen } from "lucide-react";
+import { getFeaturedPosts, getAllPosts, getTagColor } from "@/lib/blog-data";
+import { AIChat } from "@/components/ai/ai-chat";
+import { SmartSearch } from "@/components/ai/smart-search";
+import { ContentRecommendations } from "@/components/ai/content-recommendations";
 
 export default function Home() {
   const featuredPosts = getFeaturedPosts();
   const recentPosts = getAllPosts().slice(0, 3);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,26 +76,9 @@ export default function Home() {
                 {post.description}
               </p>
 
-              <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    <span>{post.author}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>{formatDate(post.publishedAt)}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    <span>{post.readTime} phút</span>
-                  </div>
-                </div>
-              </div>
-
               <div className="flex flex-wrap gap-1 mb-4">
                 {post.tags.slice(0, 3).map((tag) => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
+                  <Badge key={tag} className={`text-xs ${getTagColor(tag)}`}>
                     {tag}
                   </Badge>
                 ))}
@@ -124,6 +102,19 @@ export default function Home() {
             </div>
           ))}
         </div>
+      </section>
+
+      <Separator />
+
+      {/* Smart Search Section */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">Tìm kiếm thông minh</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Sử dụng AI để tìm kiếm nội dung phù hợp nhất với câu hỏi của bạn
+          </p>
+        </div>
+        <SmartSearch />
       </section>
 
       <Separator />
@@ -166,26 +157,9 @@ export default function Home() {
                 {post.description}
               </p>
 
-              <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1">
-                    <User className="h-3 w-3" />
-                    <span>{post.author}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>{formatDate(post.publishedAt)}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  <span>{post.readTime} phút</span>
-                </div>
-              </div>
-
               <div className="flex flex-wrap gap-1 mb-4">
                 {post.tags.slice(0, 2).map((tag) => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
+                  <Badge key={tag} className={`text-xs ${getTagColor(tag)}`}>
                     {tag}
                   </Badge>
                 ))}
@@ -227,6 +201,24 @@ export default function Home() {
           </Button>
         </div>
       </section>
+
+      <Separator />
+
+      {/* AI Recommendations Section */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">Gợi ý thông minh</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            AI phân tích sở thích và đề xuất nội dung phù hợp nhất cho bạn
+          </p>
+        </div>
+        <ContentRecommendations
+          userInterests={["React", "TypeScript", "Next.js"]}
+        />
+      </section>
+
+      {/* AI Chat Assistant */}
+      <AIChat />
     </div>
   );
 }

@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
-import { getPostBySlug, getAllPosts } from "@/lib/blog-data";
+import { getPostBySlug, getAllPosts, getTagColor } from "@/lib/blog-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, User, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { ContentRecommendations } from "@/components/ai/content-recommendations";
+import { AIChat } from "@/components/ai/ai-chat";
 
 interface BlogPostPageProps {
   params: {
@@ -24,14 +26,6 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
   if (!post) {
     notFound();
   }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -56,24 +50,9 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
 
         <p className="text-xl text-muted-foreground mb-6">{post.description}</p>
 
-        <div className="flex items-center gap-6 text-sm text-muted-foreground mb-8">
-          <div className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            <span>{post.author}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <span>{formatDate(post.publishedAt)}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            <span>{post.readTime} phút đọc</span>
-          </div>
-        </div>
-
         <div className="flex flex-wrap gap-2 mb-8">
           {post.tags.map((tag) => (
-            <Badge key={tag} variant="secondary">
+            <Badge key={tag} className={getTagColor(tag)}>
               {tag}
             </Badge>
           ))}
@@ -94,11 +73,19 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
               Xem thêm bài viết
             </Link>
           </Button>
-          <div className="text-sm text-muted-foreground">
-            Đăng bởi {post.author} • {formatDate(post.publishedAt)}
-          </div>
         </div>
       </div>
+
+      {/* AI Recommendations */}
+      <div className="mt-16">
+        <ContentRecommendations
+          currentPostSlug={params.slug}
+          userInterests={post.tags}
+        />
+      </div>
+
+      {/* AI Chat Assistant */}
+      <AIChat />
     </div>
   );
 }

@@ -203,3 +203,115 @@ export function getAllPosts(): BlogPost[] {
       new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   );
 }
+
+// Tag colors mapping
+export const tagColors: Record<string, string> = {
+  // Frontend
+  React: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  "Next.js":
+    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  "Vue.js": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  Angular: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  JavaScript:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  TypeScript: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  CSS: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+  HTML: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  Tailwind: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
+
+  // Backend
+  "Node.js":
+    "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  Python:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  Java: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  "C#": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  Go: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  Rust: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  GraphQL: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+  REST: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
+  API: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
+
+  // DevOps
+  Docker: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  Kubernetes: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  AWS: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  Azure: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  GCP: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  "CI/CD":
+    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  DevOps: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
+  Deployment:
+    "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
+  Containerization:
+    "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
+
+  // Database
+  PostgreSQL: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  MongoDB: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  MySQL:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  Redis: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  SQL: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  NoSQL:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  Database:
+    "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
+
+  // Mobile
+  "React Native":
+    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  Flutter: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  Swift:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  Kotlin:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  Mobile: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+
+  // AI/ML
+  "Machine Learning":
+    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  "Deep Learning":
+    "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
+  TensorFlow:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  PyTorch: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  AI: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  ML: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
+
+  // General
+  "Web Development":
+    "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  Performance:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  Optimization:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  "Best Practices":
+    "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  "Code Quality":
+    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  Hooks:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  Tutorial: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+  Guide: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
+  Tips: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  Tricks:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  Beginner: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  Advanced: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  Expert:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  Introduction: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  "Getting Started":
+    "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  "Cơ bản": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  "Nâng cao": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+};
+
+// Function to get tag color
+export function getTagColor(tag: string): string {
+  return (
+    tagColors[tag] ||
+    "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+  );
+}

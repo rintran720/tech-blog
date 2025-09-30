@@ -6,23 +6,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import Link from "next/link";
-import { BlogPost } from "@/lib/blog-data";
+import { BlogPost, getTagColor } from "@/lib/blog-data";
 
 interface FeaturedPostsProps {
-  posts: BlogPost[];
+  readonly posts: BlogPost[];
 }
 
 export function FeaturedPosts({ posts }: FeaturedPostsProps) {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
   return (
     <section className="mb-12">
       <div className="flex items-center gap-2 mb-6">
@@ -50,25 +42,9 @@ export function FeaturedPosts({ posts }: FeaturedPostsProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    <span>{post.author}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>{formatDate(post.publishedAt)}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    <span>{post.readTime} phút đọc</span>
-                  </div>
-                </div>
-              </div>
               <div className="flex flex-wrap gap-1">
                 {post.tags.slice(0, 3).map((tag) => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
+                  <Badge key={tag} className={`text-xs ${getTagColor(tag)}`}>
                     {tag}
                   </Badge>
                 ))}

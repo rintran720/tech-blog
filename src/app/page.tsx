@@ -7,6 +7,7 @@ import { getFeaturedPosts, getAllPosts, getTagColor } from "@/lib/blog-data";
 import { AIChat } from "@/components/ai/ai-chat";
 import { SmartSearch } from "@/components/ai/smart-search";
 import { ContentRecommendations } from "@/components/ai/content-recommendations";
+import { AuthButton } from "@/components/auth/auth-button";
 
 export default function Home() {
   const featuredPosts = getFeaturedPosts();
@@ -14,6 +15,27 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="flex items-center space-x-2">
+              <BookOpen className="h-8 w-8 text-primary" />
+              <span className="text-xl font-bold">Blog Công Nghệ</span>
+            </Link>
+            <nav className="flex items-center space-x-6">
+              <Link
+                href="/blog"
+                className="text-sm font-medium hover:text-primary transition-colors"
+              >
+                Blog
+              </Link>
+              <AuthButton />
+            </nav>
+          </div>
+        </div>
+      </header>
+
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 text-center">
         <div className="max-w-4xl mx-auto">

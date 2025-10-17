@@ -34,7 +34,7 @@ export function AIChat() {
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       role: "user",
       content: input,
       timestamp: new Date(),
@@ -64,7 +64,7 @@ export function AIChat() {
       const data = await response.json();
 
       const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: crypto.randomUUID(),
         role: "assistant",
         content: data.response,
         timestamp: new Date(),
@@ -74,7 +74,7 @@ export function AIChat() {
     } catch (error) {
       console.error("Error:", error);
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: crypto.randomUUID(),
         role: "assistant",
         content:
           "Xin lỗi, tôi gặp lỗi khi xử lý câu hỏi của bạn. Vui lòng thử lại sau.",

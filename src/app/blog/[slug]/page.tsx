@@ -1,91 +1,189 @@
 import { notFound } from "next/navigation";
-import { getPostBySlug, getAllPosts, getTagColor } from "@/lib/blog-data";
+import { prisma } from "@/lib/prisma";
+import { MarkdownViewer } from "@/components/ui/markdown-viewer";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, User, MessageSquare, Tag, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { ContentRecommendations } from "@/components/ai/content-recommendations";
-import { AIChat } from "@/components/ai/ai-chat";
+import { Button } from "@/components/ui/button";
 
-interface BlogPostPageProps {
-  params: {
-    slug: string;
-  };
+// Force dynamic rendering to prevent build-time database calls
+export const dynamic = "force-dynamic";
+
+interface PostPageProps {
+  params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
-  const posts = getAllPosts();
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
-}
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("vi-VN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
-  const post = getPostBySlug(params.slug);
+export default async function PostPage({ params }: PostPageProps) {
+  const { slug } = await params;
+
+  const post = await prisma.post.findUnique({
+    where: {
+      slug,
+      published: true, // Chỉ hiển thị bài viết đã xuất bản
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+        },
+      },
+      tags: {
+        include: {
+          tag: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              color: true,
+            },
+          },
+        },
+      },
+      _count: {
+        select: {
+          comments: true,
+        },
+      },
+    },
+  });
 
   if (!post) {
     notFound();
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <Button variant="ghost" asChild className="mb-6">
-          <Link href="/blog">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại Blog
-          </Link>
-        </Button>
-
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-          <Badge variant="outline">{post.category}</Badge>
-          {post.featured && (
-            <Badge variant="default" className="bg-primary">
-              Featured
-            </Badge>
-          )}
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="flex h-16 items-center justify-between px-6">
+          <div className="flex items-center space-x-4">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Trang chủ
+              </Link>
+            </Button>
+            <div className="text-sm text-muted-foreground">Blog công nghệ</div>
+          </div>
         </div>
+      </header>
 
-        <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
-
-        <p className="text-xl text-muted-foreground mb-6">{post.description}</p>
-
-        <div className="flex flex-wrap gap-2 mb-8">
-          {post.tags.map((tag) => (
-            <Badge key={tag} className={getTagColor(tag)}>
-              {tag}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      <article className="prose prose-lg max-w-none">
-        <div className="whitespace-pre-wrap leading-relaxed">
-          {post.content}
-        </div>
-      </article>
-
-      <div className="mt-12 pt-8 border-t">
-        <div className="flex justify-between items-center">
-          <Button variant="outline" asChild>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Back button */}
+        <div className="mb-6">
+          <Button variant="ghost" asChild>
             <Link href="/blog">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Xem thêm bài viết
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Quay lại danh sách bài viết
             </Link>
           </Button>
         </div>
-      </div>
 
-      {/* AI Recommendations */}
-      <div className="mt-16">
-        <ContentRecommendations
-          currentPostSlug={params.slug}
-          userInterests={post.tags}
-        />
-      </div>
+        {/* Article */}
+        <article className="space-y-6">
+          {/* Header */}
+          <header className="space-y-4">
+            <div className="space-y-2">
+              <h1 className="text-4xl font-bold tracking-tight text-foreground">
+                {post.title}
+              </h1>
+              {post.excerpt && (
+                <p className="text-xl text-muted-foreground">{post.excerpt}</p>
+              )}
+            </div>
 
-      {/* AI Chat Assistant */}
-      <AIChat />
+            {/* Meta information */}
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center space-x-2">
+                <User className="h-4 w-4" />
+                <span>{post.author.name || post.author.email}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Calendar className="h-4 w-4" />
+                <span>{formatDate(post.createdAt.toISOString())}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <MessageSquare className="h-4 w-4" />
+                <span>{post._count.comments} bình luận</span>
+              </div>
+            </div>
+
+            {/* Tags */}
+            {post.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {post.tags.map((postTag) => (
+                  <Badge
+                    key={postTag.tag.id}
+                    variant="secondary"
+                    style={{
+                      backgroundColor: `${postTag.tag.color}20`,
+                      color: postTag.tag.color,
+                      borderColor: postTag.tag.color,
+                    }}
+                    className="hover:shadow-md hover:scale-105 transition-all duration-200 cursor-pointer"
+                  >
+                    <Tag className="mr-1 h-3 w-3" />
+                    {postTag.tag.name}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </header>
+
+          {/* Content */}
+          <div className="prose prose-lg max-w-none">
+            <MarkdownViewer content={post.content} />
+          </div>
+        </article>
+
+        {/* Author info */}
+        <Card className="mt-12">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <User className="h-5 w-5" />
+              <span>Về tác giả</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-4">
+              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                {post.author.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={post.author.image}
+                    alt={post.author.name || "Author"}
+                    className="h-12 w-12 rounded-full"
+                  />
+                ) : (
+                  <User className="h-6 w-6 text-muted-foreground" />
+                )}
+              </div>
+              <div>
+                <h3 className="font-semibold">
+                  {post.author.name || "Tác giả"}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {post.author.email}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

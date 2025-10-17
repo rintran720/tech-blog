@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { BookOpen, ArrowLeft, Mail, Calendar, Edit } from "lucide-react";
 import Link from "next/link";
 import { AuthButton } from "@/components/auth/auth-button";
+import { AdminLink } from "@/components/navigation/admin-link";
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
@@ -89,6 +90,7 @@ export default function ProfilePage() {
               >
                 Blog
               </Link>
+              <AdminLink />
               <AuthButton />
             </nav>
           </div>

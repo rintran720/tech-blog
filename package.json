@@ -11,7 +11,10 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:assign-admin": "tsx scripts/assign-admin-role.ts",
+    "db:debug": "tsx scripts/debug-user-roles.ts",
+    "db:quick-admin": "tsx scripts/quick-assign-admin.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.16.3",

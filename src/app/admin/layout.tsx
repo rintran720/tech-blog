@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { authOptions } from "@/lib/auth-supabase";
+import { supabase } from "@/lib/supabase";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import AdminLayoutClient from "./layout-client";
@@ -20,16 +20,34 @@ export default async function AdminLayout({
     redirect("/auth/signin?callbackUrl=" + encodeURIComponent("/admin"));
   }
 
-  // Get user role from database
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: {
-      role: true,
-    },
-  });
+  // Get user role from database using Supabase
+  const { data: user, error } = await supabase
+    .from("jt_users")
+    .select(
+      `
+      id,
+      email,
+      name,
+      jt_roles (
+        id,
+        name,
+        slug
+      )
+    `
+    )
+    .eq("email", session.user.email)
+    .single();
 
-  const userRole = user?.role?.name || null;
-  const hasAdminAccess = userRole === "admin" || userRole === "Super Admin";
+  if (error) {
+    console.error("❌ Error fetching user role:", error);
+  }
+
+  const userRole = (user?.jt_roles as any)?.name || null;
+  const hasAdminAccess =
+    userRole === "admin" ||
+    userRole === "Admin" ||
+    userRole === "Super Admin" ||
+    userRole === "super-admin";
 
   if (!hasAdminAccess) {
     return (

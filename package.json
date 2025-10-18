@@ -26,6 +26,7 @@
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.13",
+    "@supabase/supabase-js": "^2.75.1",
     "@types/pg": "^8.15.5",
     "@types/uuid": "^10.0.0",
     "@uiw/react-md-editor": "^4.0.8",

@@ -7,10 +7,10 @@ import { SmartSearch } from "@/components/ai/smart-search";
 import { AuthButton } from "@/components/auth/auth-button";
 import { AdminLink } from "@/components/navigation/admin-link";
 import {
-  getHotPostsSafe,
-  getRecentPostsSafe,
-  getRecommendedPostsSafe,
-} from "@/lib/safe-db-operations";
+  getHotPostsSupabase,
+  getRecentPostsSupabase,
+  getRecommendedPostsSupabase,
+} from "@/lib/supabase-operations";
 
 // Force dynamic rendering to prevent build-time database calls
 export const dynamic = "force-dynamic";
@@ -27,9 +27,9 @@ function formatDate(date: string | Date): string {
 
 export default async function Home() {
   const [hotPosts, recentPosts, recommendedPosts] = await Promise.all([
-    getHotPostsSafe(),
-    getRecentPostsSafe(),
-    getRecommendedPostsSafe(),
+    getHotPostsSupabase(),
+    getRecentPostsSupabase(),
+    getRecommendedPostsSupabase(),
   ]);
 
   return (

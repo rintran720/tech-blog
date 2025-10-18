@@ -116,7 +116,7 @@ function BlogPageContent() {
           ...(filters.authorId && { authorId: filters.authorId }),
         });
 
-        const url = `/api/posts?${params}`;
+        const url = `/api/posts-supabase?${params}`;
         console.log("Fetching posts from:", url);
 
         const response = await fetch(url, {

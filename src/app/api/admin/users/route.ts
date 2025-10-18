@@ -1,43 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { withResourcePermission } from "@/lib/auth-middleware";
-import { prisma } from "@/lib/prisma";
+import { withAdminPermission } from "@/lib/auth-middleware";
+import { getUsersSupabase } from "@/lib/supabase-operations";
 
 // GET /api/admin/users - Lấy danh sách tất cả users
-export const GET = async (request: NextRequest) => {
+export const GET = withAdminPermission(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const email = searchParams.get("email");
 
-    const where = email ? { email } : {};
+    const options: any = {};
+    if (email) {
+      options.search = email;
+    }
 
-    const users = await prisma.user.findMany({
-      where,
-      include: {
-        role: {
-          include: {
-            rolePermissions: {
-              include: {
-                permission: true,
-              },
-            },
-          },
-        },
-        _count: {
-          select: {
-            posts: true,
-            comments: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    const users = await getUsersSupabase(options);
 
     return NextResponse.json({ users });
   } catch (error) {
@@ -47,4 +23,4 @@ export const GET = async (request: NextRequest) => {
       { status: 500 }
     );
   }
-};
+});

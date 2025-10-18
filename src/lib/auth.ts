@@ -1,6 +1,9 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { createUserWithAccount, getUserByEmail } from "./db-operations";
+import {
+  createUserWithAccountSupabase,
+  getUserByEmailSupabase,
+} from "./supabase-operations";
 
 declare module "next-auth" {
   interface Session {
@@ -33,11 +36,11 @@ export const authOptions: NextAuthOptions = {
           });
 
           // Kiểm tra xem user đã tồn tại chưa
-          const existingUser = await getUserByEmail(user.email);
+          const existingUser = await getUserByEmailSupabase(user.email);
 
           if (!existingUser) {
             // Tạo user mới trong database chỉ khi đăng nhập bằng account
-            const result = await createUserWithAccount(
+            const result = await createUserWithAccountSupabase(
               {
                 email: user.email,
                 name: user.name || undefined,
@@ -57,17 +60,19 @@ export const authOptions: NextAuthOptions = {
               }
             );
 
-            console.log("✅ Đã tạo user mới trong database:", {
-              id: result.user.id,
-              email: result.user.email,
-              name: result.user.name,
-            });
+            if (result) {
+              console.log("✅ Đã tạo user mới trong database:", {
+                id: result.user.id,
+                email: result.user.email,
+                name: result.user.name,
+              });
 
-            console.log("✅ Đã tạo account trong database:", {
-              id: result.account.id,
-              provider: result.account.provider,
-              providerAccountId: result.account.providerAccountId,
-            });
+              console.log("✅ Đã tạo account trong database:", {
+                id: result.account.id,
+                provider: result.account.provider,
+                providerAccountId: result.account.providerAccountId,
+              });
+            }
           } else {
             console.log("ℹ️ User đã tồn tại trong database:", {
               id: existingUser.id,
@@ -90,7 +95,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session }) {
       if (session?.user?.email) {
         // Chỉ lấy thông tin từ database khi user đã đăng nhập bằng account
-        const dbUser = await getUserByEmail(session.user.email);
+        const dbUser = await getUserByEmailSupabase(session.user.email);
         if (dbUser) {
           session.user.id = dbUser.id;
           console.log("📋 Session được cập nhật với thông tin từ database:", {
@@ -109,7 +114,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ user, token }) {
       if (user?.email) {
         // Chỉ lấy thông tin từ database khi user đã đăng nhập bằng account
-        const dbUser = await getUserByEmail(user.email);
+        const dbUser = await getUserByEmailSupabase(user.email);
         if (dbUser) {
           token.uid = dbUser.id;
           console.log(

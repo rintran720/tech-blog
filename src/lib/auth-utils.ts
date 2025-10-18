@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getUserByEmail } from "@/lib/db-operations";
+import { getUserByEmailSupabase } from "@/lib/supabase-operations";
 
 export async function checkAdminPermission(): Promise<{
   hasPermission: boolean;
@@ -14,7 +14,7 @@ export async function checkAdminPermission(): Promise<{
       return { hasPermission: false, error: "Unauthorized" };
     }
 
-    const dbUser = await getUserByEmail(session.user.email);
+    const dbUser = await getUserByEmailSupabase(session.user.email);
 
     if (!dbUser) {
       return { hasPermission: false, error: "User not found" };
@@ -51,7 +51,7 @@ export async function checkPermission(permission: string): Promise<{
       return { hasPermission: false, error: "Unauthorized" };
     }
 
-    const dbUser = await getUserByEmail(session.user.email);
+    const dbUser = await getUserByEmailSupabase(session.user.email);
 
     if (!dbUser) {
       return { hasPermission: false, error: "User not found" };

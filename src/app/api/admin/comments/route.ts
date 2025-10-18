@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { getAdminCommentsSupabase } from "@/lib/supabase-operations";
 
 // GET /api/admin/comments - Lấy tất cả comments (bao gồm chưa duyệt)
 export async function GET(request: NextRequest) {
@@ -14,25 +14,7 @@ export async function GET(request: NextRequest) {
 
     // TODO: Thêm logic kiểm tra quyền admin
 
-    const comments = await prisma.comment.findMany({
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-        post: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    const comments = await getAdminCommentsSupabase();
 
     return NextResponse.json({ comments });
   } catch (error) {

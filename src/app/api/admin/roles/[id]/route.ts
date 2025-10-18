@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  getRoleByIdSupabase,
+  updateRoleSupabase,
+  deleteRoleSupabase,
+} from "@/lib/supabase-operations";
 
 // GET /api/admin/roles/[id] - Lấy role theo ID
 export async function GET(
@@ -16,24 +20,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    const role = await prisma.role.findUnique({
-      where: { id },
-      include: {
-        users: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            createdAt: true,
-          },
-        },
-        _count: {
-          select: {
-            users: true,
-          },
-        },
-      },
-    });
+    const role = await getRoleByIdSupabase(id);
 
     if (!role) {
       return NextResponse.json({ error: "Role not found" }, { status: 404 });
@@ -83,10 +70,7 @@ export async function PUT(
       updateData.permissions = permissions;
     }
 
-    const role = await prisma.role.update({
-      where: { id },
-      data: updateData,
-    });
+    const role = await updateRoleSupabase(id, updateData);
 
     return NextResponse.json(role);
   } catch (error) {
@@ -112,32 +96,14 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Kiểm tra xem role có user nào không
-    const roleWithUsers = await prisma.role.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            users: true,
-          },
-        },
-      },
-    });
+    const success = await deleteRoleSupabase(id);
 
-    if (!roleWithUsers) {
-      return NextResponse.json({ error: "Role not found" }, { status: 404 });
-    }
-
-    if (roleWithUsers._count.users > 0) {
+    if (!success) {
       return NextResponse.json(
-        { error: "Cannot delete role with assigned users" },
-        { status: 400 }
+        { error: "Failed to delete role" },
+        { status: 500 }
       );
     }
-
-    await prisma.role.delete({
-      where: { id },
-    });
 
     return NextResponse.json({ message: "Role deleted successfully" });
   } catch (error) {

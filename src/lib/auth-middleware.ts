@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth";
-import { getUserByEmail } from "./db-operations";
+import { getUserByEmailSupabase } from "./supabase-operations";
 import {
   hasPermission,
   hasAnyPermission,
@@ -24,7 +24,7 @@ export async function checkPermission(
     return { hasPermission: false, error: "Unauthorized" };
   }
 
-  const dbUser = await getUserByEmail(session.user.email);
+  const dbUser = await getUserByEmailSupabase(session.user.email);
 
   if (!dbUser || !(dbUser as any).role) {
     return {
@@ -59,7 +59,7 @@ export async function checkAnyPermission(
     return { hasPermission: false, error: "Unauthorized" };
   }
 
-  const dbUser = await getUserByEmail(session.user.email);
+  const dbUser = await getUserByEmailSupabase(session.user.email);
 
   if (!dbUser || !(dbUser as any).role) {
     return {
@@ -97,7 +97,7 @@ export async function checkResourcePermission(
     return { hasPermission: false, error: "Unauthorized" };
   }
 
-  const dbUser = await getUserByEmail(session.user.email);
+  const dbUser = await getUserByEmailSupabase(session.user.email);
 
   if (!dbUser || !(dbUser as any).role) {
     return {
@@ -131,7 +131,7 @@ export async function checkAdminPermission(): Promise<PermissionCheckResult> {
     return { hasPermission: false, error: "Unauthorized" };
   }
 
-  const dbUser = await getUserByEmail(session.user.email);
+  const dbUser = await getUserByEmailSupabase(session.user.email);
 
   if (!dbUser || !(dbUser as any).role) {
     return {

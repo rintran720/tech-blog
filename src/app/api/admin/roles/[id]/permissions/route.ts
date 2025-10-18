@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAdminPermission } from "@/lib/auth-middleware";
-import { prisma } from "@/lib/prisma";
-import { generateId } from "@/lib/uuid";
+import {
+  getRolePermissionsSupabase,
+  updateRolePermissionsSupabase,
+} from "@/lib/supabase-operations";
 
 // GET /api/admin/roles/[id]/permissions - Lấy permissions của role
 export async function GET(
@@ -16,12 +18,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    const rolePermissions = await prisma.rolePermission.findMany({
-      where: { roleId: id },
-      include: {
-        permission: true,
-      },
-    });
+    const rolePermissions = await getRolePermissionsSupabase(id);
 
     return NextResponse.json(rolePermissions);
   } catch (error) {
@@ -68,28 +65,7 @@ export async function PUT(
     });
 
     // Use transaction to ensure consistency
-    const results = await prisma.$transaction(async (tx) => {
-      // First, delete all existing role permissions
-      await tx.rolePermission.deleteMany({
-        where: { roleId: id },
-      });
-
-      // Then create new ones
-      const newPermissions = await Promise.all(
-        permissionUpdates.map((perm) =>
-          tx.rolePermission.create({
-            data: {
-              id: generateId(),
-              roleId: id,
-              permissionId: perm.permissionId,
-              granted: perm.granted,
-            },
-          })
-        )
-      );
-
-      return newPermissions;
-    });
+    const results = await updateRolePermissionsSupabase(id, permissionUpdates);
 
     return NextResponse.json(results);
   } catch (error) {

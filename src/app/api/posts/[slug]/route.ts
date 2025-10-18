@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getPostBySlug, updatePost, deletePost } from "@/lib/db-operations";
+import {
+  getPostBySlugSupabase,
+  updatePostSupabase,
+  deletePostSupabase,
+} from "@/lib/supabase-operations";
 
 // GET /api/posts/[slug] - Lấy bài viết theo slug
 export async function GET(
@@ -10,7 +14,7 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const post = await getPostBySlug(slug);
+    const post = await getPostBySlugSupabase(slug);
 
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
@@ -39,7 +43,7 @@ export async function PUT(
     }
 
     const { slug } = await params;
-    const post = await getPostBySlug(slug);
+    const post = await getPostBySlugSupabase(slug);
 
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
@@ -51,7 +55,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const updatedPost = await updatePost(post.id, body);
+    const updatedPost = await updatePostSupabase(post.id, body);
 
     return NextResponse.json({ post: updatedPost });
   } catch (error) {
@@ -76,7 +80,7 @@ export async function DELETE(
     }
 
     const { slug } = await params;
-    const post = await getPostBySlug(slug);
+    const post = await getPostBySlugSupabase(slug);
 
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
@@ -87,7 +91,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    await deletePost(post.id);
+    await deletePostSupabase(post.id);
 
     return NextResponse.json({ message: "Post deleted successfully" });
   } catch (error) {

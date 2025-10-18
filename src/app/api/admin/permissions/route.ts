@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { withAdminPermission } from "@/lib/auth-middleware";
-import { prisma } from "@/lib/prisma";
+import {
+  getPermissionsSupabase,
+  createPermissionSupabase,
+} from "@/lib/supabase-operations";
 import { generateId } from "@/lib/uuid";
 
 // GET /api/admin/permissions - Lấy danh sách permissions
@@ -14,9 +17,7 @@ export const GET = async (request: NextRequest) => {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const permissions = await prisma.permission.findMany({
-      orderBy: [{ resource: "asc" }, { action: "asc" }],
-    });
+    const permissions = await getPermissionsSupabase();
 
     return NextResponse.json({ permissions });
   } catch (error) {
@@ -49,16 +50,20 @@ export const POST = async (request: NextRequest) => {
 
     const slug = `${resource}.${action}`;
 
-    const permission = await prisma.permission.create({
-      data: {
-        id: generateId(),
-        name,
-        slug,
-        description,
-        resource,
-        action,
-      },
+    const permission = await createPermissionSupabase({
+      name,
+      slug,
+      description,
+      resource,
+      action,
     });
+
+    if (!permission) {
+      return NextResponse.json(
+        { error: "Failed to create permission" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ permission }, { status: 201 });
   } catch (error) {

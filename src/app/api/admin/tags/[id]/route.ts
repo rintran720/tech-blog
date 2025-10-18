@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  getTagByIdSupabase,
+  updateTagSupabase,
+  deleteTagSupabase,
+} from "@/lib/supabase-operations";
+import { supabase } from "@/lib/supabase";
 
 export async function GET(
   request: NextRequest,
@@ -15,16 +20,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    const tag = await prisma.tag.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            posts: true,
-          },
-        },
-      },
-    });
+    const tag = await getTagByIdSupabase(id);
 
     if (!tag) {
       return NextResponse.json({ error: "Tag not found" }, { status: 404 });
@@ -60,34 +56,23 @@ export async function PUT(
     }
 
     // Check if tag with same slug already exists (excluding current tag)
-    const existingTag = await prisma.tag.findFirst({
-      where: {
-        slug,
-        id: { not: id },
-      },
-    });
+    const { data: existingTags } = await supabase
+      .from("jt_tags")
+      .select("id")
+      .eq("slug", slug)
+      .neq("id", id);
 
-    if (existingTag) {
+    if (existingTags && existingTags.length > 0) {
       return NextResponse.json(
         { error: "Tag with this slug already exists" },
         { status: 400 }
       );
     }
 
-    const tag = await prisma.tag.update({
-      where: { id },
-      data: {
-        name,
-        slug,
-        color: color || "#EF7A43",
-      },
-      include: {
-        _count: {
-          select: {
-            posts: true,
-          },
-        },
-      },
+    const tag = await updateTagSupabase(id, {
+      name,
+      slug,
+      color: color || "#EF7A43",
     });
 
     return NextResponse.json({ tag });
@@ -116,15 +101,14 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Delete all relationships between this tag and posts first
-    await prisma.postTag.deleteMany({
-      where: { tagId: id },
-    });
+    const success = await deleteTagSupabase(id);
 
-    // Then delete the tag
-    await prisma.tag.delete({
-      where: { id },
-    });
+    if (!success) {
+      return NextResponse.json(
+        { error: "Failed to delete tag" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ message: "Tag deleted successfully" });
   } catch (error) {

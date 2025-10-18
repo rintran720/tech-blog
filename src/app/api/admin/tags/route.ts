@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { getTagsSupabase, createTagSupabase } from "@/lib/supabase-operations";
 
 export async function GET() {
   try {
@@ -11,18 +11,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const tags = await prisma.tag.findMany({
-      include: {
-        _count: {
-          select: {
-            posts: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    const tags = await getTagsSupabase();
 
     return NextResponse.json({ tags });
   } catch (error) {
@@ -53,9 +42,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if tag with same slug already exists
-    const existingTag = await prisma.tag.findUnique({
-      where: { slug },
-    });
+    const existingTags = await getTagsSupabase();
+    const existingTag = existingTags.find((tag) => tag.slug === slug);
 
     if (existingTag) {
       return NextResponse.json(
@@ -64,20 +52,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const tag = await prisma.tag.create({
-      data: {
-        name,
-        slug,
-        color: color || "#EF7A43",
-      },
-      include: {
-        _count: {
-          select: {
-            posts: true,
-          },
-        },
-      },
+    const tag = await createTagSupabase({
+      name,
+      slug,
+      color: color || "#EF7A43",
     });
+
+    if (!tag) {
+      return NextResponse.json(
+        { error: "Failed to create tag" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ tag }, { status: 201 });
   } catch (error) {

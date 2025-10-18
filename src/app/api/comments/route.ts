@@ -2,11 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import {
-  createComment,
-  getCommentsByPost,
-  approveComment,
-  deleteComment,
-} from "@/lib/db-operations";
+  getCommentsByPostSupabase,
+  createCommentSupabase,
+} from "@/lib/supabase-operations";
 
 // GET /api/comments - Lấy comments theo postId
 export async function GET(request: NextRequest) {
@@ -21,7 +19,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const comments = await getCommentsByPost(postId);
+    const comments = await getCommentsByPostSupabase(postId);
     return NextResponse.json({ comments });
   } catch (error) {
     console.error("Error fetching comments:", error);
@@ -51,7 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const comment = await createComment({
+    const comment = await createCommentSupabase({
       content,
       postId,
       authorId: session.user.id,

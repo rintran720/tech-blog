@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { approveComment, deleteComment } from "@/lib/db-operations";
+import {
+  approveCommentSupabase,
+  deleteCommentSupabase,
+} from "@/lib/supabase-operations";
 
 // PUT /api/comments/[id] - Approve comment
 export async function PUT(
@@ -18,9 +21,16 @@ export async function PUT(
     const { id } = await params;
 
     // TODO: Thêm logic kiểm tra quyền admin/moderator
-    const comment = await approveComment(id);
+    const success = await approveCommentSupabase(id);
 
-    return NextResponse.json({ comment });
+    if (!success) {
+      return NextResponse.json(
+        { error: "Failed to approve comment" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ message: "Comment approved successfully" });
   } catch (error) {
     console.error("Error approving comment:", error);
     return NextResponse.json(
@@ -45,7 +55,14 @@ export async function DELETE(
     const { id } = await params;
 
     // TODO: Thêm logic kiểm tra quyền sở hữu hoặc admin
-    await deleteComment(id);
+    const success = await deleteCommentSupabase(id);
+
+    if (!success) {
+      return NextResponse.json(
+        { error: "Failed to delete comment" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ message: "Comment deleted successfully" });
   } catch (error) {

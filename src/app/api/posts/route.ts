@@ -2,13 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import {
-  createPost,
-  getPosts,
-  getPostBySlug,
-  updatePost,
-  deletePost,
-  getPostStats,
-} from "@/lib/db-operations";
+  getPostsSupabase,
+  createPostSupabase,
+} from "@/lib/supabase-operations";
 
 // GET /api/posts - Lấy danh sách bài viết
 export async function GET(request: NextRequest) {
@@ -22,7 +18,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const offset = parseInt(searchParams.get("offset") || "0");
 
-    const posts = await getPosts({
+    const posts = await getPostsSupabase({
       published,
       featured: featured ? featured === "true" : undefined,
       category: category || undefined,
@@ -70,13 +66,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const post = await createPost({
+    const post = await createPostSupabase({
       title,
       slug,
       content,
       excerpt,
       category,
-      tagNames,
       authorId: session.user.id,
       published: published || false,
       featured: featured || false,

@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { checkAdminPermission } from "@/lib/auth-middleware";
-import { prisma } from "@/lib/prisma";
+import {
+  getPermissionByIdSupabase,
+  updatePermissionSupabase,
+  deletePermissionSupabase,
+} from "@/lib/supabase-operations";
 
 // GET /api/admin/permissions/[id] - Lấy permission theo ID
 export async function GET(
@@ -17,22 +21,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    const permission = await prisma.permission.findUnique({
-      where: { id },
-      include: {
-        rolePermissions: {
-          include: {
-            role: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const permission = await getPermissionByIdSupabase(id);
 
     if (!permission) {
       return NextResponse.json(
@@ -76,16 +65,13 @@ export async function PUT(
 
     const slug = `${resource}.${action}`;
 
-    const updatedPermission = await prisma.permission.update({
-      where: { id },
-      data: {
-        name,
-        slug,
-        description,
-        resource,
-        action,
-        isActive,
-      },
+    const updatedPermission = await updatePermissionSupabase(id, {
+      name,
+      slug,
+      description,
+      resource,
+      action,
+      isActive,
     });
 
     return NextResponse.json(updatedPermission);
@@ -111,9 +97,14 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    await prisma.permission.delete({
-      where: { id },
-    });
+    const success = await deletePermissionSupabase(id);
+
+    if (!success) {
+      return NextResponse.json(
+        { error: "Failed to delete permission" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(
       { message: "Permission deleted successfully" },

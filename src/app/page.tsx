@@ -128,7 +128,7 @@ export default async function Home() {
               </p>
 
               <div className="flex flex-wrap gap-1 mb-4">
-                {post.tags.slice(0, 3).map((tag) => (
+                {post.tags?.slice(0, 3).map((tag) => (
                   <Badge
                     key={tag.id}
                     className="text-xs"
@@ -141,7 +141,7 @@ export default async function Home() {
                     {tag.name}
                   </Badge>
                 ))}
-                {post.tags.length > 3 && (
+                {post.tags && post.tags.length > 3 && (
                   <Badge variant="secondary" className="text-xs">
                     +{post.tags.length - 3}
                   </Badge>
@@ -160,7 +160,7 @@ export default async function Home() {
                   </div>
                 </div>
                 <span className="text-highlight font-medium">
-                  {post.author.name || post.author.email}
+                  {post.author?.name || post.author?.email}
                 </span>
               </div>
 
@@ -227,7 +227,7 @@ export default async function Home() {
               </p>
 
               <div className="flex flex-wrap gap-1 mb-4">
-                {post.tags.slice(0, 2).map((tag) => (
+                {post.tags?.slice(0, 2).map((tag) => (
                   <Badge
                     key={tag.id}
                     className="text-xs"
@@ -240,7 +240,7 @@ export default async function Home() {
                     {tag.name}
                   </Badge>
                 ))}
-                {post.tags.length > 2 && (
+                {post.tags && post.tags.length > 2 && (
                   <Badge variant="secondary" className="text-xs">
                     +{post.tags.length - 2}
                   </Badge>
@@ -259,7 +259,7 @@ export default async function Home() {
                   </div>
                 </div>
                 <span className="text-highlight font-medium text-xs">
-                  {post.author.name || post.author.email}
+                  {post.author?.name || post.author?.email}
                 </span>
               </div>
 
@@ -325,7 +325,7 @@ export default async function Home() {
               </p>
 
               <div className="flex flex-wrap gap-1 mb-4">
-                {post.tags.slice(0, 2).map((tag) => (
+                {post.tags?.slice(0, 2).map((tag) => (
                   <Badge
                     key={tag.id}
                     className="text-xs"
@@ -338,7 +338,7 @@ export default async function Home() {
                     {tag.name}
                   </Badge>
                 ))}
-                {post.tags.length > 2 && (
+                {post.tags && post.tags.length > 2 && (
                   <Badge variant="secondary" className="text-xs">
                     +{post.tags.length - 2}
                   </Badge>
@@ -357,7 +357,7 @@ export default async function Home() {
                   </div>
                 </div>
                 <span className="text-highlight font-medium text-xs">
-                  {post.author.name || post.author.email}
+                  {post.author?.name || post.author?.email}
                 </span>
               </div>
 

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { prisma } from "@/lib/prisma";
+import {
+  getPostsSupabase,
+  updatePostSupabase,
+  deletePostSupabase,
+} from "@/lib/supabase-operations";
 import { generateId } from "@/lib/uuid";
 
 // GET /api/admin/posts/[id] - Lấy bài viết theo ID
@@ -15,59 +19,19 @@ export async function GET(
     }
 
     const { id } = await params;
-    const post = await prisma.post.findUnique({
-      where: { id },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-                color: true,
-              },
-            },
-          },
-          orderBy: {
-            tag: {
-              createdAt: "desc",
-            },
-          },
-        },
-        _count: {
-          select: {
-            comments: true,
-          },
-        },
-      },
-    });
+
+    // We need to get post by ID, but our function works with slug
+    // For now, we'll use a workaround - this should be improved
+    const posts = await getPostsSupabase({ limit: 1000 }); // Get all posts
+    const post = posts.find((p) => p.id === id);
 
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
-    // Flatten tags structure
-    const postWithFlattenedTags = {
-      ...post,
-      tags: post.tags.map((postTag) => ({
-        id: postTag.tag.id,
-        name: postTag.tag.name,
-        slug: postTag.tag.slug,
-        color: postTag.tag.color,
-      })),
-    };
-
-    return NextResponse.json({ post: postWithFlattenedTags });
+    return NextResponse.json({ post });
   } catch (error) {
-    console.error("Error fetching post:", error);
+    console.error("Error fetching admin post:", error);
     return NextResponse.json(
       { error: "Failed to fetch post" },
       { status: 500 }
@@ -88,115 +52,40 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
+
     const {
       title,
-      content,
-      published,
-      excerpt,
-      featured,
-      category,
-      tags,
-      tagIds,
       slug,
+      content,
+      excerpt,
+      category,
+      published,
+      featured,
       hotScore,
     } = body;
 
-    if (!title || !content) {
+    const updateData: any = {};
+    if (title !== undefined) updateData.title = title;
+    if (slug !== undefined) updateData.slug = slug;
+    if (content !== undefined) updateData.content = content;
+    if (excerpt !== undefined) updateData.excerpt = excerpt;
+    if (category !== undefined) updateData.category = category;
+    if (published !== undefined) updateData.published = published;
+    if (featured !== undefined) updateData.featured = featured;
+    if (hotScore !== undefined) updateData.hotScore = hotScore;
+
+    const updatedPost = await updatePostSupabase(id, updateData);
+
+    if (!updatedPost) {
       return NextResponse.json(
-        { error: "Title and content are required" },
-        { status: 400 }
+        { error: "Failed to update post" },
+        { status: 500 }
       );
     }
 
-    // Use provided slug or generate from title
-    const finalSlug =
-      slug ||
-      title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .trim();
-
-    // Update post and handle tags
-    const post = await prisma.$transaction(async (tx) => {
-      // Delete existing post tags
-      await tx.postTag.deleteMany({
-        where: { postId: id },
-      });
-
-      // Update post
-      const updatedPost = await tx.post.update({
-        where: { id },
-        data: {
-          title,
-          slug: finalSlug,
-          content,
-          excerpt: excerpt || content.substring(0, 200) + "...",
-          published: published || false,
-          featured: featured || false,
-          category: category || "",
-          hotScore: hotScore || 0,
-          tags:
-            (tagIds || tags) && (tagIds || tags).length > 0
-              ? {
-                  create: (tagIds || tags).map((tagId: string) => ({
-                    id: generateId(),
-                    tagId,
-                  })),
-                }
-              : undefined,
-        },
-        include: {
-          author: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          tags: {
-            include: {
-              tag: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                  color: true,
-                },
-              },
-            },
-            orderBy: {
-              tag: {
-                createdAt: "desc",
-              },
-            },
-          },
-          _count: {
-            select: {
-              comments: true,
-            },
-          },
-        },
-      });
-
-      return updatedPost;
-    });
-
-    // Flatten tags structure
-    const postWithFlattenedTags = {
-      ...post,
-      tags: post.tags.map((postTag) => ({
-        id: postTag.tag.id,
-        name: postTag.tag.name,
-        slug: postTag.tag.slug,
-        color: postTag.tag.color,
-      })),
-    };
-
-    return NextResponse.json({ post: postWithFlattenedTags });
+    return NextResponse.json({ post: updatedPost });
   } catch (error) {
-    console.error("Error updating post:", error);
+    console.error("Error updating admin post:", error);
     return NextResponse.json(
       { error: "Failed to update post" },
       { status: 500 }
@@ -216,13 +105,19 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    await prisma.post.delete({
-      where: { id },
-    });
+
+    const success = await deletePostSupabase(id);
+
+    if (!success) {
+      return NextResponse.json(
+        { error: "Failed to delete post" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ message: "Post deleted successfully" });
   } catch (error) {
-    console.error("Error deleting post:", error);
+    console.error("Error deleting admin post:", error);
     return NextResponse.json(
       { error: "Failed to delete post" },
       { status: 500 }

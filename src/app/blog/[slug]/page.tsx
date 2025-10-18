@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getPostBySlugSupabase } from "@/lib/supabase-operations";
 import { MarkdownViewer } from "@/components/ui/markdown-viewer";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,39 +27,7 @@ const formatDate = (dateString: string) => {
 export default async function PostPage({ params }: PostPageProps) {
   const { slug } = await params;
 
-  const post = await prisma.post.findUnique({
-    where: {
-      slug,
-      published: true, // Chỉ hiển thị bài viết đã xuất bản
-    },
-    include: {
-      author: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-        },
-      },
-      tags: {
-        include: {
-          tag: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              color: true,
-            },
-          },
-        },
-      },
-      _count: {
-        select: {
-          comments: true,
-        },
-      },
-    },
-  });
+  const post = await getPostBySlugSupabase(slug); // Get published post by slug
 
   if (!post) {
     notFound();
@@ -110,34 +78,34 @@ export default async function PostPage({ params }: PostPageProps) {
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center space-x-2">
                 <User className="h-4 w-4" />
-                <span>{post.author.name || post.author.email}</span>
+                <span>{post.author?.name || post.author?.email}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4" />
-                <span>{formatDate(post.createdAt.toISOString())}</span>
+                <span>{formatDate(post.createdAt)}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MessageSquare className="h-4 w-4" />
-                <span>{post._count.comments} bình luận</span>
+                <span>{post._count?.comments || 0} bình luận</span>
               </div>
             </div>
 
             {/* Tags */}
-            {post.tags.length > 0 && (
+            {post.tags && post.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {post.tags.map((postTag) => (
+                {post.tags.map((tag) => (
                   <Badge
-                    key={postTag.tag.id}
+                    key={tag.id}
                     variant="secondary"
                     style={{
-                      backgroundColor: `${postTag.tag.color}20`,
-                      color: postTag.tag.color,
-                      borderColor: postTag.tag.color,
+                      backgroundColor: `${tag.color}20`,
+                      color: tag.color,
+                      borderColor: tag.color,
                     }}
                     className="hover:shadow-md hover:scale-105 transition-all duration-200 cursor-pointer"
                   >
                     <Tag className="mr-1 h-3 w-3" />
-                    {postTag.tag.name}
+                    {tag.name}
                   </Badge>
                 ))}
               </div>
@@ -161,11 +129,11 @@ export default async function PostPage({ params }: PostPageProps) {
           <CardContent>
             <div className="flex items-center space-x-4">
               <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                {post.author.image ? (
+                {post.author && "image" in post.author && post.author.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={post.author.image}
-                    alt={post.author.name || "Author"}
+                    src={post.author.image as string}
+                    alt={post.author?.name || "Author"}
                     className="h-12 w-12 rounded-full"
                   />
                 ) : (
@@ -174,10 +142,10 @@ export default async function PostPage({ params }: PostPageProps) {
               </div>
               <div>
                 <h3 className="font-semibold">
-                  {post.author.name || "Tác giả"}
+                  {post.author?.name || "Tác giả"}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  {post.author.email}
+                  {post.author?.email}
                 </p>
               </div>
             </div>

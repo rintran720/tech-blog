@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  approveCommentAdminSupabase,
+  rejectCommentAdminSupabase,
+} from "@/lib/supabase-operations";
 
 // PUT /api/admin/comments/[id]/approve - Approve comment
 export async function PUT(
@@ -22,32 +25,25 @@ export async function PUT(
     const action = searchParams.get("action");
 
     if (action === "approve") {
-      const comment = await prisma.comment.update({
-        where: { id },
-        data: { approved: true },
-        include: {
-          author: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-            },
-          },
-          post: {
-            select: {
-              id: true,
-              title: true,
-              slug: true,
-            },
-          },
-        },
-      });
+      const comment = await approveCommentAdminSupabase(id);
+
+      if (!comment) {
+        return NextResponse.json(
+          { error: "Failed to approve comment" },
+          { status: 500 }
+        );
+      }
 
       return NextResponse.json({ comment });
     } else if (action === "reject") {
-      await prisma.comment.delete({
-        where: { id },
-      });
+      const success = await rejectCommentAdminSupabase(id);
+
+      if (!success) {
+        return NextResponse.json(
+          { error: "Failed to reject comment" },
+          { status: 500 }
+        );
+      }
 
       return NextResponse.json({ message: "Comment rejected and deleted" });
     } else {

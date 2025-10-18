@@ -1,5 +1,12 @@
-import { prisma } from "./prisma";
+import { supabase } from "./supabase";
 import { generateId } from "./uuid";
+import {
+  hasPermissionSupabase,
+  hasAnyPermissionSupabase,
+  hasResourcePermissionSupabase,
+  createPermissionSupabase,
+  getUserPermissionsSupabase,
+} from "./supabase-operations";
 
 // Permission constants
 export const PERMISSIONS = {
@@ -73,57 +80,14 @@ export async function hasPermission(
   userId: string,
   permission: string
 ): Promise<boolean> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      role: {
-        include: {
-          rolePermissions: {
-            include: {
-              permission: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!user?.role) return false;
-
-  // Check if user has the specific permission
-  const hasSpecificPermission = user.role.rolePermissions.some(
-    (rp) => rp.granted && rp.permission.slug === permission
-  );
-
-  return hasSpecificPermission;
+  return hasPermissionSupabase(userId, permission);
 }
 
 export async function hasAnyPermission(
   userId: string,
   permissions: string[]
 ): Promise<boolean> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      role: {
-        include: {
-          rolePermissions: {
-            include: {
-              permission: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!user?.role) return false;
-
-  return permissions.some((permission) =>
-    user.role!.rolePermissions.some(
-      (rp) => rp.granted && rp.permission.slug === permission
-    )
-  );
+  return hasAnyPermissionSupabase(userId, permissions);
 }
 
 export async function hasResourcePermission(
@@ -131,29 +95,7 @@ export async function hasResourcePermission(
   resource: string,
   action: string
 ): Promise<boolean> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      role: {
-        include: {
-          rolePermissions: {
-            include: {
-              permission: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!user?.role) return false;
-
-  return user.role.rolePermissions.some(
-    (rp) =>
-      rp.granted &&
-      rp.permission.resource === resource &&
-      rp.permission.action === action
-  );
+  return hasResourcePermissionSupabase(userId, resource, action);
 }
 
 // Permission management functions
@@ -165,88 +107,17 @@ export async function createPermission(data: {
 }): Promise<any> {
   const slug = `${data.resource}.${data.action}`;
 
-  return prisma.permission.create({
-    data: {
-      id: generateId(),
-      name: data.name,
-      slug,
-      description: data.description,
-      resource: data.resource,
-      action: data.action,
-    },
-  });
-}
-
-export async function assignPermissionToRole(
-  roleId: string,
-  permissionId: string,
-  granted: boolean = true
-): Promise<any> {
-  return prisma.rolePermission.upsert({
-    where: {
-      roleId_permissionId: {
-        roleId,
-        permissionId,
-      },
-    },
-    update: {
-      granted,
-    },
-    create: {
-      id: generateId(),
-      roleId,
-      permissionId,
-      granted,
-    },
-  });
-}
-
-export async function revokePermissionFromRole(
-  roleId: string,
-  permissionId: string
-): Promise<any> {
-  return prisma.rolePermission.update({
-    where: {
-      roleId_permissionId: {
-        roleId,
-        permissionId,
-      },
-    },
-    data: {
-      granted: false,
-    },
+  return createPermissionSupabase({
+    name: data.name,
+    slug,
+    description: data.description,
+    resource: data.resource,
+    action: data.action,
   });
 }
 
 export async function getUserPermissions(userId: string): Promise<string[]> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      role: {
-        include: {
-          rolePermissions: {
-            where: { granted: true },
-            include: {
-              permission: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!user?.role) return [];
-
-  return user.role.rolePermissions.map((rp) => rp.permission.slug);
-}
-
-export async function getRolePermissions(roleId: string): Promise<any[]> {
-  return prisma.rolePermission.findMany({
-    where: { roleId },
-    include: {
-      permission: true,
-    },
-  });
+  return getUserPermissionsSupabase(userId);
 }
 
 // Initialize default permissions
@@ -298,17 +169,12 @@ export async function initializePermissions(): Promise<void> {
   ];
 
   for (const perm of permissions) {
-    await prisma.permission.upsert({
-      where: { slug: `${perm.resource}.${perm.action}` },
-      update: {},
-      create: {
-        id: generateId(),
-        name: perm.name,
-        slug: `${perm.resource}.${perm.action}`,
-        description: `Permission to ${perm.action} ${perm.resource}`,
-        resource: perm.resource,
-        action: perm.action,
-      },
+    await createPermissionSupabase({
+      name: perm.name,
+      slug: `${perm.resource}.${perm.action}`,
+      description: `Permission to ${perm.action} ${perm.resource}`,
+      resource: perm.resource,
+      action: perm.action,
     });
   }
 

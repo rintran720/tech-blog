@@ -2,6 +2,30 @@ import { prisma } from "./prisma";
 import { User, Post, Comment, Account } from "@prisma/client";
 import { generateId } from "./uuid";
 
+// Database error handling wrapper
+async function withDatabaseErrorHandling<T>(
+  operation: () => Promise<T>,
+  operationName: string
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    console.error(`❌ Database operation failed: ${operationName}`, error);
+
+    // Check if it's a connection error
+    if (
+      error instanceof Error &&
+      error.message.includes("Can't reach database server")
+    ) {
+      throw new Error(
+        `Database connection failed for ${operationName}. Please check your DATABASE_URL and Supabase connection.`
+      );
+    }
+
+    throw error;
+  }
+}
+
 // User operations
 export async function createUser(userData: {
   email: string;

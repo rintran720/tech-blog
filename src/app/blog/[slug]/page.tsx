@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import { getPostBySlugSupabase } from "@/lib/supabase-operations";
 import { MarkdownViewer } from "@/components/ui/markdown-viewer";
+import { TableOfContents } from "@/components/blog/table-of-contents";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, User, MessageSquare, Tag, ArrowLeft } from "lucide-react";
+import { Calendar, User, Tag, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -50,7 +51,10 @@ export default async function PostPage({ params }: PostPageProps) {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-8 max-w-4xl relative">
+        {/* Table of Contents */}
+        <TableOfContents content={post.content} />
+
         {/* Back button */}
         <div className="mb-6">
           <Button variant="ghost" asChild>
@@ -83,10 +87,6 @@ export default async function PostPage({ params }: PostPageProps) {
               <div className="flex items-center space-x-2">
                 <Calendar className="h-4 w-4" />
                 <span>{formatDate(post.createdAt)}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <MessageSquare className="h-4 w-4" />
-                <span>{post._count?.comments || 0} bình luận</span>
               </div>
             </div>
 

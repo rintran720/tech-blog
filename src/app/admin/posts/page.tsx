@@ -43,8 +43,6 @@ interface Post {
   content: string;
   excerpt: string | null;
   published: boolean;
-  featured: boolean | null;
-  category: string | null;
   hotScore: number;
   createdAt: string;
   updatedAt: string;
@@ -59,9 +57,6 @@ interface Post {
     slug: string;
     color: string;
   }[];
-  _count: {
-    comments: number;
-  };
 }
 
 interface Tag {
@@ -92,8 +87,6 @@ export default function AdminPostsPage() {
     content: "",
     excerpt: "",
     published: false,
-    featured: false,
-    category: "",
     hotScore: 0,
     tagIds: [] as string[],
   });
@@ -252,8 +245,6 @@ export default function AdminPostsPage() {
       content: "",
       excerpt: "",
       published: false,
-      featured: false,
-      category: "",
       hotScore: 0,
       tagIds: [],
     });
@@ -270,8 +261,6 @@ export default function AdminPostsPage() {
       content: post.content,
       excerpt: post.excerpt || "",
       published: post.published,
-      featured: post.featured || false,
-      category: post.category || "",
       hotScore: post.hotScore || 0,
       tagIds: post.tags.map((tag) => tag.id),
     });
@@ -375,17 +364,6 @@ export default function AdminPostsPage() {
                   onChange={(value) =>
                     setFormData({ ...formData, content: value || "" })
                   }
-                />
-              </div>
-              <div>
-                <Label htmlFor="category">Danh mục</Label>
-                <Input
-                  id="category"
-                  value={formData.category || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, category: e.target.value })
-                  }
-                  placeholder="Nhập danh mục..."
                 />
               </div>
               <div>
@@ -509,16 +487,6 @@ export default function AdminPostsPage() {
                   />
                   <span>Đã xuất bản</span>
                 </label>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.featured}
-                    onChange={(e) =>
-                      setFormData({ ...formData, featured: e.target.checked })
-                    }
-                  />
-                  <span>Nổi bật</span>
-                </label>
               </div>
               <div className="flex justify-end space-x-2">
                 <Button
@@ -527,10 +495,7 @@ export default function AdminPostsPage() {
                 >
                   Hủy
                 </Button>
-                <Button
-                  className="bg-primary text-black"
-                  onClick={handleCreatePost}
-                >
+                <Button variant="default" onClick={handleCreatePost}>
                   Tạo bài viết
                 </Button>
               </div>
@@ -780,17 +745,6 @@ export default function AdminPostsPage() {
               />
             </div>
             <div>
-              <Label htmlFor="edit-category">Danh mục</Label>
-              <Input
-                id="edit-category"
-                value={formData.category || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, category: e.target.value })
-                }
-                placeholder="Nhập danh mục..."
-              />
-            </div>
-            <div>
               <Label htmlFor="edit-hotScore">Hot Score</Label>
               <Input
                 id="edit-hotScore"
@@ -908,25 +862,12 @@ export default function AdminPostsPage() {
                 />
                 <span>Đã xuất bản</span>
               </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={formData.featured}
-                  onChange={(e) =>
-                    setFormData({ ...formData, featured: e.target.checked })
-                  }
-                />
-                <span>Nổi bật</span>
-              </label>
             </div>
             <div className="flex justify-end space-x-2">
               <Button variant="outline" onClick={() => setIsEditOpen(false)}>
                 Hủy
               </Button>
-              <Button
-                className="bg-primary text-black"
-                onClick={handleUpdatePost}
-              >
+              <Button variant="default" onClick={handleUpdatePost}>
                 Cập nhật
               </Button>
             </div>

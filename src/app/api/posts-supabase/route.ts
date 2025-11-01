@@ -7,8 +7,6 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const published = searchParams.get("published") === "true";
-    const featured = searchParams.get("featured");
-    const category = searchParams.get("category");
     const authorId = searchParams.get("authorId");
     const tagSlugs = searchParams.get("tagSlugs");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -16,8 +14,6 @@ export async function GET(request: NextRequest) {
 
     const posts = await getPostsSupabase({
       published,
-      featured: featured ? featured === "true" : undefined,
-      category: category || undefined,
       authorId: authorId || undefined,
       tagSlugs: tagSlugs ? tagSlugs.split(",") : undefined,
       limit,

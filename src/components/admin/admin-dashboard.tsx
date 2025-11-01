@@ -1356,7 +1356,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
                         <CardTitle>Quản lý quyền</CardTitle>
                         <Button
                           onClick={() => setIsCreatePermissionOpen(true)}
-                          className="bg-primary text-black"
+                          variant="default"
                         >
                           <Plus className="mr-2 h-4 w-4" />
                           Tạo quyền mới
@@ -1564,7 +1564,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
                             Hủy
                           </Button>
                           <Button
-                            className="bg-primary text-black"
+                            variant="default"
                             onClick={handleCreatePermission}
                           >
                             Tạo quyền
@@ -1670,7 +1670,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
                             Hủy
                           </Button>
                           <Button
-                            className="bg-primary text-black"
+                            variant="default"
                             onClick={handleUpdatePermission}
                           >
                             Cập nhật
@@ -1688,7 +1688,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
                         <CardTitle>Quản lý vai trò</CardTitle>
                         <Button
                           onClick={() => setIsCreateRoleOpen(true)}
-                          className="bg-primary text-black"
+                          variant="default"
                         >
                           <Plus className="mr-2 h-4 w-4" />
                           Tạo vai trò mới
@@ -1885,7 +1885,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
                             Hủy
                           </Button>
                           <Button
-                            className="bg-primary text-black"
+                            variant="default"
                             onClick={handleCreateRole}
                           >
                             Tạo vai trò
@@ -1955,7 +1955,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
                             Hủy
                           </Button>
                           <Button
-                            className="bg-primary text-black"
+                            variant="default"
                             onClick={handleUpdateRole}
                           >
                             Cập nhật
@@ -2094,7 +2094,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
                             Hủy
                           </Button>
                           <Button
-                            className="bg-primary text-black"
+                            variant="default"
                             onClick={handleUpdateRolePermissions}
                           >
                             Cập nhật quyền

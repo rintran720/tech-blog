@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Image from "next/image";
@@ -10,7 +11,234 @@ interface MarkdownViewerProps {
   readonly className?: string;
 }
 
+// Remove Vietnamese accents for SEO-friendly URLs
+function removeVietnameseAccents(str: string): string {
+  const vietnameseMap: { [key: string]: string } = {
+    à: "a",
+    á: "a",
+    ạ: "a",
+    ả: "a",
+    ã: "a",
+    â: "a",
+    ầ: "a",
+    ấ: "a",
+    ậ: "a",
+    ẩ: "a",
+    ẫ: "a",
+    ă: "a",
+    ằ: "a",
+    ắ: "a",
+    ặ: "a",
+    ẳ: "a",
+    ẵ: "a",
+    è: "e",
+    é: "e",
+    ẹ: "e",
+    ẻ: "e",
+    ẽ: "e",
+    ê: "e",
+    ề: "e",
+    ế: "e",
+    ệ: "e",
+    ể: "e",
+    ễ: "e",
+    ì: "i",
+    í: "i",
+    ị: "i",
+    ỉ: "i",
+    ĩ: "i",
+    ò: "o",
+    ó: "o",
+    ọ: "o",
+    ỏ: "o",
+    õ: "o",
+    ô: "o",
+    ồ: "o",
+    ố: "o",
+    ộ: "o",
+    ổ: "o",
+    ỗ: "o",
+    ơ: "o",
+    ờ: "o",
+    ớ: "o",
+    ợ: "o",
+    ở: "o",
+    ỡ: "o",
+    ù: "u",
+    ú: "u",
+    ụ: "u",
+    ủ: "u",
+    ũ: "u",
+    ư: "u",
+    ừ: "u",
+    ứ: "u",
+    ự: "u",
+    ử: "u",
+    ữ: "u",
+    ỳ: "y",
+    ý: "y",
+    ỵ: "y",
+    ỷ: "y",
+    ỹ: "y",
+    đ: "d",
+    À: "A",
+    Á: "A",
+    Ạ: "A",
+    Ả: "A",
+    Ã: "A",
+    Â: "A",
+    Ầ: "A",
+    Ấ: "A",
+    Ậ: "A",
+    Ẩ: "A",
+    Ẫ: "A",
+    Ă: "A",
+    Ằ: "A",
+    Ắ: "A",
+    Ặ: "A",
+    Ẳ: "A",
+    Ẵ: "A",
+    È: "E",
+    É: "E",
+    Ẹ: "E",
+    Ẻ: "E",
+    Ẽ: "E",
+    Ê: "E",
+    Ề: "E",
+    Ế: "E",
+    Ệ: "E",
+    Ể: "E",
+    Ễ: "E",
+    Ì: "I",
+    Í: "I",
+    Ị: "I",
+    Ỉ: "I",
+    Ĩ: "I",
+    Ò: "O",
+    Ó: "O",
+    Ọ: "O",
+    Ỏ: "O",
+    Õ: "O",
+    Ô: "O",
+    Ồ: "O",
+    Ố: "O",
+    Ộ: "O",
+    Ổ: "O",
+    Ỗ: "O",
+    Ơ: "O",
+    Ờ: "O",
+    Ớ: "O",
+    Ợ: "O",
+    Ở: "O",
+    Ỡ: "O",
+    Ù: "U",
+    Ú: "U",
+    Ụ: "U",
+    Ủ: "U",
+    Ũ: "U",
+    Ư: "U",
+    Ừ: "U",
+    Ứ: "U",
+    Ự: "U",
+    Ử: "U",
+    Ữ: "U",
+    Ỳ: "Y",
+    Ý: "Y",
+    Ỵ: "Y",
+    Ỷ: "Y",
+    Ỹ: "Y",
+    Đ: "D",
+  };
+
+  return str
+    .split("")
+    .map((char) => vietnameseMap[char] || char)
+    .join("");
+}
+
+// Generate SEO-friendly ID from heading text
+function generateHeadingId(text: string): string {
+  return removeVietnameseAccents(text)
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "") // Remove special characters
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+    .trim();
+}
+
 export function MarkdownViewer({ content, className }: MarkdownViewerProps) {
+  // Pre-generate heading IDs in order (same as parseHeadings in table-of-contents)
+  // This ensures IDs match exactly between markdown-viewer and table-of-contents
+  const headingIdsByOrder = React.useMemo(() => {
+    const ids: Array<{ text: string; id: string }> = [];
+    const idCounts = new Map<string, number>();
+    const lines = content.split("\n");
+
+    for (const line of lines) {
+      const match = line.match(/^(#{1,6})\s+(.+)$/);
+      if (match) {
+        const text = match[2].trim();
+        const baseId = generateHeadingId(text);
+
+        // Generate unique ID with same logic as table-of-contents
+        let uniqueId = baseId;
+        if (idCounts.has(baseId)) {
+          const count = idCounts.get(baseId)! + 1;
+          idCounts.set(baseId, count);
+          uniqueId = `${baseId}-${count}`;
+        } else {
+          idCounts.set(baseId, 0);
+        }
+
+        ids.push({ text: text.toLowerCase().trim(), id: uniqueId });
+      }
+    }
+
+    return ids;
+  }, [content]);
+
+  // Track heading index during render
+  const headingIndexRef = React.useRef<number>(0);
+
+  // Reset when content changes
+  React.useEffect(() => {
+    headingIndexRef.current = 0;
+  }, [content]);
+
+  const getUniqueId = React.useCallback(
+    (text: string, fallback: string): string => {
+      const normalizedText = text.toLowerCase().trim();
+      const currentIndex = headingIndexRef.current;
+
+      // Try to match by index and text for accuracy
+      if (currentIndex < headingIdsByOrder.length) {
+        const expectedHeading = headingIdsByOrder[currentIndex];
+
+        // If text matches, use the pre-generated ID
+        if (expectedHeading.text === normalizedText) {
+          headingIndexRef.current = currentIndex + 1;
+          return expectedHeading.id;
+        }
+
+        // If text doesn't match, try to find it in the remaining headings
+        // (in case ReactMarkdown renders in different order)
+        for (let i = currentIndex + 1; i < headingIdsByOrder.length; i++) {
+          if (headingIdsByOrder[i].text === normalizedText) {
+            // Found match later, use it but this is not ideal
+            headingIndexRef.current = i + 1;
+            return headingIdsByOrder[i].id;
+          }
+        }
+      }
+
+      // Fallback: generate ID on the fly if not found
+      const baseId = generateHeadingId(text) || fallback;
+      headingIndexRef.current = currentIndex + 1;
+      return baseId;
+    },
+    [headingIdsByOrder]
+  );
+
   return (
     <div
       className={cn(
@@ -70,36 +298,168 @@ export function MarkdownViewer({ content, className }: MarkdownViewerProps) {
         remarkPlugins={[remarkGfm]}
         components={{
           // Custom components for better styling
-          h1: ({ children }) => (
-            <h1 className="text-4xl font-bold mb-6 mt-8 text-foreground border-b border-border pb-4 tracking-tight">
-              {children}
-            </h1>
-          ),
-          h2: ({ children }) => (
-            <h2 className="text-3xl font-bold mb-4 mt-8 text-highlight tracking-tight">
-              {children}
-            </h2>
-          ),
-          h3: ({ children }) => (
-            <h3 className="text-2xl font-bold mb-3 mt-6 text-foreground tracking-tight">
-              {children}
-            </h3>
-          ),
-          h4: ({ children }) => (
-            <h4 className="text-xl font-semibold mb-2 mt-4 text-foreground tracking-tight">
-              {children}
-            </h4>
-          ),
-          h5: ({ children }) => (
-            <h5 className="text-lg font-semibold mb-2 mt-3 text-foreground tracking-tight">
-              {children}
-            </h5>
-          ),
-          h6: ({ children }) => (
-            <h6 className="text-base font-semibold mb-2 mt-2 text-foreground tracking-tight">
-              {children}
-            </h6>
-          ),
+          h1: ({ children, ...props }) => {
+            const getText = (node: React.ReactNode): string => {
+              if (typeof node === "string") return node;
+              if (typeof node === "number") return String(node);
+              if (Array.isArray(node)) {
+                return node.map(getText).join("");
+              }
+              if (React.isValidElement(node)) {
+                const props = node.props as { children?: React.ReactNode };
+                if (props.children) {
+                  return getText(props.children);
+                }
+              }
+              return "";
+            };
+            const text = getText(children);
+            const id = getUniqueId(text, "heading-1");
+            return (
+              <h1
+                id={id}
+                {...props}
+                className="text-4xl font-bold mb-6 mt-8 text-foreground border-b border-border pb-4 tracking-tight scroll-mt-20"
+              >
+                {children}
+              </h1>
+            );
+          },
+          h2: ({ children, ...props }) => {
+            const getText = (node: React.ReactNode): string => {
+              if (typeof node === "string") return node;
+              if (typeof node === "number") return String(node);
+              if (Array.isArray(node)) {
+                return node.map(getText).join("");
+              }
+              if (React.isValidElement(node)) {
+                const props = node.props as { children?: React.ReactNode };
+                if (props.children) {
+                  return getText(props.children);
+                }
+              }
+              return "";
+            };
+            const text = getText(children);
+            const id = getUniqueId(text, "heading-2");
+            return (
+              <h2
+                id={id}
+                {...props}
+                className="text-3xl font-bold mb-4 mt-8 text-highlight tracking-tight scroll-mt-20"
+              >
+                {children}
+              </h2>
+            );
+          },
+          h3: ({ children, ...props }) => {
+            const getText = (node: React.ReactNode): string => {
+              if (typeof node === "string") return node;
+              if (typeof node === "number") return String(node);
+              if (Array.isArray(node)) {
+                return node.map(getText).join("");
+              }
+              if (React.isValidElement(node)) {
+                const props = node.props as { children?: React.ReactNode };
+                if (props.children) {
+                  return getText(props.children);
+                }
+              }
+              return "";
+            };
+            const text = getText(children);
+            const id = getUniqueId(text, "heading-3");
+            return (
+              <h3
+                id={id}
+                {...props}
+                className="text-2xl font-bold mb-3 mt-6 text-foreground tracking-tight scroll-mt-20"
+              >
+                {children}
+              </h3>
+            );
+          },
+          h4: ({ children, ...props }) => {
+            const getText = (node: React.ReactNode): string => {
+              if (typeof node === "string") return node;
+              if (typeof node === "number") return String(node);
+              if (Array.isArray(node)) {
+                return node.map(getText).join("");
+              }
+              if (React.isValidElement(node)) {
+                const props = node.props as { children?: React.ReactNode };
+                if (props.children) {
+                  return getText(props.children);
+                }
+              }
+              return "";
+            };
+            const text = getText(children);
+            const id = getUniqueId(text, "heading-4");
+            return (
+              <h4
+                id={id}
+                {...props}
+                className="text-xl font-semibold mb-2 mt-4 text-foreground tracking-tight scroll-mt-20"
+              >
+                {children}
+              </h4>
+            );
+          },
+          h5: ({ children, ...props }) => {
+            const getText = (node: React.ReactNode): string => {
+              if (typeof node === "string") return node;
+              if (typeof node === "number") return String(node);
+              if (Array.isArray(node)) {
+                return node.map(getText).join("");
+              }
+              if (React.isValidElement(node)) {
+                const props = node.props as { children?: React.ReactNode };
+                if (props.children) {
+                  return getText(props.children);
+                }
+              }
+              return "";
+            };
+            const text = getText(children);
+            const id = getUniqueId(text, "heading-5");
+            return (
+              <h5
+                id={id}
+                {...props}
+                className="text-lg font-semibold mb-2 mt-3 text-foreground tracking-tight scroll-mt-20"
+              >
+                {children}
+              </h5>
+            );
+          },
+          h6: ({ children, ...props }) => {
+            const getText = (node: React.ReactNode): string => {
+              if (typeof node === "string") return node;
+              if (typeof node === "number") return String(node);
+              if (Array.isArray(node)) {
+                return node.map(getText).join("");
+              }
+              if (React.isValidElement(node)) {
+                const props = node.props as { children?: React.ReactNode };
+                if (props.children) {
+                  return getText(props.children);
+                }
+              }
+              return "";
+            };
+            const text = getText(children);
+            const id = getUniqueId(text, "heading-6");
+            return (
+              <h6
+                id={id}
+                {...props}
+                className="text-base font-semibold mb-2 mt-2 text-foreground tracking-tight scroll-mt-20"
+              >
+                {children}
+              </h6>
+            );
+          },
           p: ({ children }) => (
             <p className="mb-4 text-foreground leading-relaxed text-base">
               {children}

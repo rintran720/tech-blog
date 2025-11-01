@@ -264,7 +264,7 @@ export default function AdminRolesPage() {
         <h1 className="text-3xl font-bold">Quản lý vai trò</h1>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetRoleForm} className="bg-primary text-black">
+            <Button onClick={resetRoleForm} variant="default">
               <Plus className="mr-2 h-4 w-4" />
               Tạo vai trò mới
             </Button>
@@ -318,7 +318,7 @@ export default function AdminRolesPage() {
                   Hủy
                 </Button>
                 <Button
-                  className="bg-primary text-black"
+                  variant="default"
                   onClick={handleCreateRole}
                 >
                   Tạo vai trò
@@ -499,7 +499,7 @@ export default function AdminRolesPage() {
                 Hủy
               </Button>
               <Button
-                className="bg-primary text-black"
+                variant="default"
                 onClick={handleUpdateRole}
               >
                 Cập nhật
@@ -640,7 +640,7 @@ export default function AdminRolesPage() {
                 Hủy
               </Button>
               <Button
-                className="bg-primary text-black"
+                variant="default"
                 onClick={handleUpdateRolePermissions}
               >
                 Cập nhật quyền

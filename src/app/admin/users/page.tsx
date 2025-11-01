@@ -22,7 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Settings, Users, FileText, MessageSquare } from "lucide-react";
+import { Settings, Users, FileText } from "lucide-react";
 
 interface User {
   id: string;
@@ -37,7 +37,6 @@ interface User {
   } | null;
   _count: {
     posts: number;
-    comments: number;
   };
 }
 
@@ -222,10 +221,6 @@ export default function AdminUsersPage() {
                           <FileText className="h-3 w-3" />
                           <span>{user._count?.posts || 0} bài viết</span>
                         </div>
-                        <div className="flex items-center space-x-1 mt-1">
-                          <MessageSquare className="h-3 w-3" />
-                          <span>{user._count?.comments || 0} bình luận</span>
-                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
@@ -286,7 +281,7 @@ export default function AdminUsersPage() {
                 Hủy
               </Button>
               <Button
-                className="bg-primary text-black"
+                variant="default"
                 onClick={handleAssignRole}
               >
                 Cập nhật vai trò

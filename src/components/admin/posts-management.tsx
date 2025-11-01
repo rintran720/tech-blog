@@ -578,7 +578,7 @@ export function PostsManagement() {
                 Hủy
               </Button>
               <Button
-                className="bg-primary text-black"
+                variant="default"
                 onClick={handleUpdatePost}
               >
                 Cập nhật

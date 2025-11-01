@@ -192,7 +192,7 @@ export default function AdminTagsPage() {
         <h1 className="text-3xl font-bold">Quản lý thẻ</h1>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm} className="bg-primary text-black">
+            <Button onClick={resetForm} variant="default">
               <Plus className="mr-2 h-4 w-4" />
               Tạo thẻ mới
             </Button>
@@ -254,7 +254,7 @@ export default function AdminTagsPage() {
                   Hủy
                 </Button>
                 <Button
-                  className="bg-primary text-black"
+                  variant="default"
                   onClick={handleCreateTag}
                 >
                   Tạo thẻ
@@ -418,7 +418,7 @@ export default function AdminTagsPage() {
                 Hủy
               </Button>
               <Button
-                className="bg-primary text-black"
+                variant="default"
                 onClick={handleUpdateTag}
               >
                 Cập nhật

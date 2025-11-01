@@ -2,10 +2,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowRight, BookOpen, Calendar, MessageSquare } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowRight, BookOpen, Calendar, User, Tag } from "lucide-react";
 import { SmartSearch } from "@/components/ai/smart-search";
 import { AuthButton } from "@/components/auth/auth-button";
 import { AdminLink } from "@/components/navigation/admin-link";
+import { DemoMenu } from "@/components/navigation/demo-menu";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { TagsOverflow } from "@/components/blog/tags-overflow";
 import {
   getHotPostsSupabase,
   getRecentPostsSupabase,
@@ -49,7 +53,9 @@ export default async function Home() {
               >
                 Blog
               </Link>
+              <DemoMenu />
               <AdminLink />
+              <ThemeToggle />
               <AuthButton />
             </nav>
           </div>
@@ -109,72 +115,70 @@ export default async function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {hotPosts.map((post) => (
-            <div
+            <Card
               key={post.id}
-              className="group border rounded-lg p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/20"
+              className="group relative h-full overflow-hidden border-2 border-transparent bg-gradient-to-br from-card via-card to-card/50 backdrop-blur-sm transition-all duration-500 hover:scale-[1.02] hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/10"
             >
-              <div className="flex items-center gap-2 mb-4">
-                {post.category && (
-                  <Badge variant="outline">{post.category}</Badge>
-                )}
-              </div>
+              {/* Animated gradient background on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/0 opacity-0 transition-opacity duration-500 group-hover:opacity-5" />
 
-              <h3 className="text-xl font-semibold mb-3 group-hover:text-primary transition-colors">
-                <Link href={`/blog/${post.slug}`}>{post.title}</Link>
-              </h3>
+              {/* Shimmer effect */}
+              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-none group-hover:transition-transform group-hover:duration-1000 group-hover:translate-x-full" />
 
-              <p className="text-muted-foreground mb-4 line-clamp-3">
-                {post.excerpt || post.content.substring(0, 200) + "..."}
-              </p>
+              {/* Left accent border */}
+              <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-primary via-primary/60 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
-              <div className="flex flex-wrap gap-1 mb-4">
-                {post.tags?.slice(0, 3).map((tag) => (
-                  <Badge
-                    key={tag.id}
-                    className="text-xs"
-                    style={{
-                      backgroundColor: tag.color + "20",
-                      color: tag.color,
-                      borderColor: tag.color + "40",
-                    }}
+              <CardHeader className="relative z-10 space-y-3">
+                <CardTitle className="text-xl font-bold leading-tight group-hover:text-primary transition-all duration-300">
+                  <Link
+                    href={`/blog/${post.slug}`}
+                    className="relative inline-block after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-primary after:to-primary/50 after:transition-all after:duration-300 group-hover:after:w-full"
                   >
-                    {tag.name}
-                  </Badge>
-                ))}
-                {post.tags && post.tags.length > 3 && (
-                  <Badge variant="secondary" className="text-xs">
-                    +{post.tags.length - 3}
-                  </Badge>
-                )}
-              </div>
+                    {post.title}
+                  </Link>
+                </CardTitle>
 
-              <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>{formatDate(post.createdAt)}</span>
+                <p className="text-sm leading-relaxed text-muted-foreground line-clamp-3 transition-colors duration-300 group-hover:text-foreground/80">
+                  {post.excerpt || post.content.substring(0, 200) + "..."}
+                </p>
+
+                {/* Tags */}
+                <TagsOverflow tags={post.tags || []} displayCount={3} />
+
+                {/* Meta information */}
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground pt-2">
+                  <div className="flex items-center space-x-2 group/meta">
+                    <div className="w-7 h-7 bg-highlight/10 rounded-full flex items-center justify-center transition-all duration-300 group-hover/meta:bg-highlight/20 group-hover/meta:scale-110">
+                      <Calendar className="h-3.5 w-3.5 text-highlight transition-transform duration-300 group-hover/meta:scale-110" />
+                    </div>
+                    <span className="transition-colors duration-300 group-hover:text-foreground">
+                      {formatDate(post.createdAt)}
+                    </span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <MessageSquare className="h-4 w-4" />
-                    <span>{post._count?.comments || 0} bình luận</span>
+                  <div className="flex items-center space-x-2 group/meta">
+                    <div className="w-7 h-7 bg-highlight/10 rounded-full flex items-center justify-center transition-all duration-300 group-hover/meta:bg-highlight/20 group-hover/meta:scale-110">
+                      <User className="h-3.5 w-3.5 text-highlight transition-transform duration-300 group-hover/meta:scale-110" />
+                    </div>
+                    <span className="font-medium transition-colors duration-300 group-hover:text-foreground">
+                      {post.author?.name || post.author?.email}
+                    </span>
                   </div>
                 </div>
-                <span className="text-highlight font-medium">
-                  {post.author?.name || post.author?.email}
-                </span>
-              </div>
+              </CardHeader>
 
-              <Button
-                variant="ghost"
-                asChild
-                className="p-0 h-auto font-medium text-primary hover:text-primary hover:bg-primary/10"
-              >
-                <Link href={`/blog/${post.slug}`}>
-                  Đọc thêm
-                  <ArrowRight className="ml-1 h-4 w-4" />
+              <CardContent className="relative z-10 pt-0">
+                <Link
+                  href={`/blog/${post.slug}`}
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-primary group/link transition-all duration-300 hover:gap-3"
+                >
+                  <span>Đọc thêm</span>
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/link:translate-x-1" />
                 </Link>
-              </Button>
-            </div>
+              </CardContent>
+
+              {/* Bottom gradient border on hover */}
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+            </Card>
           ))}
         </div>
       </section>
@@ -205,75 +209,70 @@ export default async function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {recommendedPosts.map((post) => (
-            <div
+            <Card
               key={post.id}
-              className="group border rounded-lg p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/20"
+              className="group relative h-full overflow-hidden border-2 border-transparent bg-gradient-to-br from-card via-card to-card/50 backdrop-blur-sm transition-all duration-500 hover:scale-[1.02] hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/10"
             >
-              <div className="flex items-center gap-2 mb-4">
-                {post.category && (
-                  <Badge variant="outline">{post.category}</Badge>
-                )}
-                {post.featured && (
-                  <Badge className="bg-primary">Featured</Badge>
-                )}
-              </div>
+              {/* Animated gradient background on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/0 opacity-0 transition-opacity duration-500 group-hover:opacity-5" />
 
-              <h3 className="text-lg font-semibold mb-3 group-hover:text-primary transition-colors line-clamp-2">
-                <Link href={`/blog/${post.slug}`}>{post.title}</Link>
-              </h3>
+              {/* Shimmer effect */}
+              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-none group-hover:transition-transform group-hover:duration-1000 group-hover:translate-x-full" />
 
-              <p className="text-muted-foreground mb-4 line-clamp-3 text-sm">
-                {post.excerpt || post.content.substring(0, 150) + "..."}
-              </p>
+              {/* Left accent border */}
+              <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-primary via-primary/60 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
-              <div className="flex flex-wrap gap-1 mb-4">
-                {post.tags?.slice(0, 2).map((tag) => (
-                  <Badge
-                    key={tag.id}
-                    className="text-xs"
-                    style={{
-                      backgroundColor: tag.color + "20",
-                      color: tag.color,
-                      borderColor: tag.color + "40",
-                    }}
+              <CardHeader className="relative z-10 space-y-3">
+                <CardTitle className="text-lg font-bold leading-tight line-clamp-2 group-hover:text-primary transition-all duration-300">
+                  <Link
+                    href={`/blog/${post.slug}`}
+                    className="relative inline-block after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-primary after:to-primary/50 after:transition-all after:duration-300 group-hover:after:w-full"
                   >
-                    {tag.name}
-                  </Badge>
-                ))}
-                {post.tags && post.tags.length > 2 && (
-                  <Badge variant="secondary" className="text-xs">
-                    +{post.tags.length - 2}
-                  </Badge>
-                )}
-              </div>
+                    {post.title}
+                  </Link>
+                </CardTitle>
 
-              <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>{formatDate(post.createdAt)}</span>
+                <p className="text-sm leading-relaxed text-muted-foreground line-clamp-3 transition-colors duration-300 group-hover:text-foreground/80">
+                  {post.excerpt || post.content.substring(0, 150) + "..."}
+                </p>
+
+                {/* Tags */}
+                <TagsOverflow tags={post.tags || []} displayCount={2} />
+
+                {/* Meta information */}
+                <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground pt-2">
+                  <div className="flex items-center space-x-1.5 group/meta">
+                    <div className="w-6 h-6 bg-highlight/10 rounded-full flex items-center justify-center transition-all duration-300 group-hover/meta:bg-highlight/20 group-hover/meta:scale-110">
+                      <Calendar className="h-3 w-3 text-highlight transition-transform duration-300 group-hover/meta:scale-110" />
+                    </div>
+                    <span className="transition-colors duration-300 group-hover:text-foreground">
+                      {formatDate(post.createdAt)}
+                    </span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <MessageSquare className="h-3 w-3" />
-                    <span>{post._count?.comments || 0}</span>
+                  <div className="flex items-center space-x-1.5 group/meta">
+                    <div className="w-6 h-6 bg-highlight/10 rounded-full flex items-center justify-center transition-all duration-300 group-hover/meta:bg-highlight/20 group-hover/meta:scale-110">
+                      <User className="h-3 w-3 text-highlight transition-transform duration-300 group-hover/meta:scale-110" />
+                    </div>
+                    <span className="font-medium transition-colors duration-300 group-hover:text-foreground">
+                      {post.author?.name || post.author?.email}
+                    </span>
                   </div>
                 </div>
-                <span className="text-highlight font-medium text-xs">
-                  {post.author?.name || post.author?.email}
-                </span>
-              </div>
+              </CardHeader>
 
-              <Button
-                variant="ghost"
-                asChild
-                className="p-0 h-auto font-medium text-sm text-primary hover:text-primary hover:bg-primary/10"
-              >
-                <Link href={`/blog/${post.slug}`}>
-                  Đọc thêm
-                  <ArrowRight className="ml-1 h-3 w-3" />
+              <CardContent className="relative z-10 pt-0">
+                <Link
+                  href={`/blog/${post.slug}`}
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-primary group/link transition-all duration-300 hover:gap-3"
+                >
+                  <span>Đọc thêm</span>
+                  <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover/link:translate-x-1" />
                 </Link>
-              </Button>
-            </div>
+              </CardContent>
+
+              {/* Bottom gradient border on hover */}
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+            </Card>
           ))}
         </div>
       </section>
@@ -303,75 +302,66 @@ export default async function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {recentPosts.map((post) => (
-            <div
+            <Card
               key={post.id}
-              className="group border rounded-lg p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/20"
+              className="group relative h-full overflow-hidden border-2 border-transparent bg-gradient-to-br from-card via-card to-card/50 backdrop-blur-sm transition-all duration-500 hover:scale-[1.02] hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/10"
             >
-              <div className="flex items-center gap-2 mb-4">
-                {post.category && (
-                  <Badge variant="outline">{post.category}</Badge>
-                )}
-                {post.featured && (
-                  <Badge className="bg-primary">Featured</Badge>
-                )}
-              </div>
+              {/* Animated gradient background on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/0 opacity-0 transition-opacity duration-500 group-hover:opacity-5" />
 
-              <h3 className="text-lg font-semibold mb-3 group-hover:text-primary transition-colors line-clamp-2">
-                <Link href={`/blog/${post.slug}`}>{post.title}</Link>
-              </h3>
+              {/* Shimmer effect */}
+              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-none group-hover:transition-transform group-hover:duration-1000 group-hover:translate-x-full" />
 
-              <p className="text-muted-foreground mb-4 line-clamp-3 text-sm">
-                {post.excerpt || post.content.substring(0, 150) + "..."}
-              </p>
+              {/* Left accent border */}
+              <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-primary via-primary/60 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
-              <div className="flex flex-wrap gap-1 mb-4">
-                {post.tags?.slice(0, 2).map((tag) => (
-                  <Badge
-                    key={tag.id}
-                    className="text-xs"
-                    style={{
-                      backgroundColor: tag.color + "20",
-                      color: tag.color,
-                      borderColor: tag.color + "40",
-                    }}
+              <CardHeader className="relative z-10 space-y-3">
+                <CardTitle className="text-lg font-bold leading-tight line-clamp-2 group-hover:text-primary transition-all duration-300">
+                  <Link
+                    href={`/blog/${post.slug}`}
+                    className="relative inline-block after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-primary after:to-primary/50 after:transition-all after:duration-300 group-hover:after:w-full"
                   >
-                    {tag.name}
-                  </Badge>
-                ))}
-                {post.tags && post.tags.length > 2 && (
-                  <Badge variant="secondary" className="text-xs">
-                    +{post.tags.length - 2}
-                  </Badge>
-                )}
-              </div>
+                    {post.title}
+                  </Link>
+                </CardTitle>
 
-              <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>{formatDate(post.createdAt)}</span>
+                <p className="text-sm leading-relaxed text-muted-foreground line-clamp-3 transition-colors duration-300 group-hover:text-foreground/80">
+                  {post.excerpt || post.content.substring(0, 150) + "..."}
+                </p>
+
+                {/* Tags */}
+                <TagsOverflow tags={post.tags || []} displayCount={2} />
+
+                {/* Meta information */}
+                <div className="flex items-center space-x-1.5 group/meta text-xs text-muted-foreground pt-2">
+                  <div className="w-6 h-6 bg-highlight/10 rounded-full flex items-center justify-center transition-all duration-300 group-hover/meta:bg-highlight/20 group-hover/meta:scale-110">
+                    <Calendar className="h-3 w-3 text-highlight transition-transform duration-300 group-hover/meta:scale-110" />
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <MessageSquare className="h-3 w-3" />
-                    <span>{post._count?.comments || 0}</span>
+                  <span className="transition-colors duration-300 group-hover:text-foreground">
+                    {formatDate(post.createdAt)}
+                  </span>
+                  <div className="w-6 h-6 bg-highlight/10 rounded-full flex items-center justify-center transition-all duration-300 group-hover/meta:bg-highlight/20 group-hover/meta:scale-110 ml-3">
+                    <User className="h-3 w-3 text-highlight transition-transform duration-300 group-hover/meta:scale-110" />
                   </div>
+                  <span className="font-medium transition-colors duration-300 group-hover:text-foreground">
+                    {post.author?.name || post.author?.email}
+                  </span>
                 </div>
-                <span className="text-highlight font-medium text-xs">
-                  {post.author?.name || post.author?.email}
-                </span>
-              </div>
+              </CardHeader>
 
-              <Button
-                variant="ghost"
-                asChild
-                className="p-0 h-auto font-medium text-sm text-primary hover:text-primary hover:bg-primary/10"
-              >
-                <Link href={`/blog/${post.slug}`}>
-                  Đọc thêm
-                  <ArrowRight className="ml-1 h-3 w-3" />
+              <CardContent className="relative z-10 pt-0">
+                <Link
+                  href={`/blog/${post.slug}`}
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-primary group/link transition-all duration-300 hover:gap-3"
+                >
+                  <span>Đọc thêm</span>
+                  <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover/link:translate-x-1" />
                 </Link>
-              </Button>
-            </div>
+              </CardContent>
+
+              {/* Bottom gradient border on hover */}
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+            </Card>
           ))}
         </div>
       </section>

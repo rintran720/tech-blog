@@ -20,8 +20,6 @@ export async function GET(request: NextRequest) {
 
     const posts = await getPostsSupabase({
       published,
-      featured: featured ? featured === "true" : undefined,
-      category: category || undefined,
       authorId: authorId || undefined,
       tagSlugs: tagSlugs ? tagSlugs.split(",") : undefined,
       limit,
@@ -71,10 +69,8 @@ export async function POST(request: NextRequest) {
       slug,
       content,
       excerpt,
-      category,
       authorId: session.user.id,
       published: published || false,
-      featured: featured || false,
     });
 
     return NextResponse.json({ post }, { status: 201 });

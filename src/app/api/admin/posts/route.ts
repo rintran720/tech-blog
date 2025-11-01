@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { withResourcePermission } from "@/lib/auth-middleware";
 import {
   getPostsSupabase,
   createPostSupabase,
+  getUserByEmailSupabase,
 } from "@/lib/supabase-operations";
 import { generateId } from "@/lib/uuid";
 
@@ -69,22 +71,13 @@ export const GET = async (request: NextRequest) => {
 // POST /api/admin/posts - Tạo bài viết mới
 export const POST = async (request: NextRequest) => {
   try {
-    const token = await getToken({ req: request });
-    if (!token?.email) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
-    const {
-      title,
-      slug,
-      content,
-      excerpt,
-      category,
-      published,
-      featured,
-      authorId,
-    } = body;
+    const { title, slug, content, excerpt, published, authorId } = body;
 
     if (!title || !slug || !content) {
       return NextResponse.json(
@@ -93,15 +86,31 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
+    // Get author ID - use provided authorId, or session user ID, or fetch from database
+    let finalAuthorId = authorId;
+    if (!finalAuthorId) {
+      if (session.user.id) {
+        finalAuthorId = session.user.id;
+      } else {
+        // Fallback: fetch user from database by email
+        const dbUser = await getUserByEmailSupabase(session.user.email);
+        if (!dbUser) {
+          return NextResponse.json(
+            { error: "User not found in database" },
+            { status: 404 }
+          );
+        }
+        finalAuthorId = dbUser.id;
+      }
+    }
+
     const post = await createPostSupabase({
       title,
       slug,
       content,
       excerpt,
-      category,
-      authorId: authorId || token.sub,
+      authorId: finalAuthorId,
       published: published || false,
-      featured: featured || false,
     });
 
     if (!post) {

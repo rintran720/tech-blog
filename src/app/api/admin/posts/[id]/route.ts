@@ -58,9 +58,7 @@ export async function PUT(
       slug,
       content,
       excerpt,
-      category,
       published,
-      featured,
       hotScore,
     } = body;
 
@@ -69,9 +67,7 @@ export async function PUT(
     if (slug !== undefined) updateData.slug = slug;
     if (content !== undefined) updateData.content = content;
     if (excerpt !== undefined) updateData.excerpt = excerpt;
-    if (category !== undefined) updateData.category = category;
     if (published !== undefined) updateData.published = published;
-    if (featured !== undefined) updateData.featured = featured;
     if (hotScore !== undefined) updateData.hotScore = hotScore;
 
     const updatedPost = await updatePostSupabase(id, updateData);

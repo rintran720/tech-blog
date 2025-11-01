@@ -5,15 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Calendar,
-  User,
-  MessageSquare,
-  Tag,
-  ArrowLeft,
-  Loader2,
-} from "lucide-react";
+import { Calendar, User, Tag, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface Post {
   id: string;
@@ -21,8 +15,6 @@ interface Post {
   slug: string;
   excerpt: string | null;
   published: boolean;
-  featured: boolean | null;
-  category: string | null;
   createdAt: string;
   updatedAt: string;
   author: {
@@ -36,9 +28,6 @@ interface Post {
     slug: string;
     color: string;
   }[];
-  _count: {
-    comments: number;
-  };
 }
 
 interface Tag {
@@ -273,13 +262,16 @@ function BlogPageContent() {
               Blog công nghệ
             </div>
           </div>
+          <div className="flex items-center">
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Page header */}
         <div className="mb-12 text-center">
-          <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-highlight to-highlight-dark bg-clip-text mb-4 text-black">
+          <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-highlight to-highlight-dark bg-clip-text mb-4 text-transparent">
             Blog Công Nghệ
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
@@ -367,21 +359,30 @@ function BlogPageContent() {
             return posts.map((post) => (
               <Card
                 key={post.id}
-                className="group hover:shadow-lg hover:shadow-highlight/10 transition-all duration-300 border-l-4 border-l-transparent hover:border-l-highlight"
+                className="group relative overflow-hidden border-2 border-transparent bg-gradient-to-br from-card via-card to-card/50 backdrop-blur-sm transition-all duration-500 hover:scale-[1.01] hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/10"
               >
-                <CardHeader>
+                {/* Animated gradient background on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/0 opacity-0 transition-opacity duration-500 group-hover:opacity-5" />
+
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-none group-hover:transition-transform group-hover:duration-1000 group-hover:translate-x-full" />
+
+                {/* Left accent border */}
+                <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-primary via-primary/60 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+                <CardHeader className="relative z-10">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-2xl mb-3 group-hover:text-primary transition-colors">
+                      <CardTitle className="text-2xl mb-3 font-bold leading-tight group-hover:text-primary transition-all duration-300">
                         <Link
                           href={`/blog/${post.slug}`}
-                          className="hover:text-primary transition-colors"
+                          className="relative inline-block after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-gradient-to-r after:from-primary after:to-primary/50 after:transition-all after:duration-300 group-hover:after:w-full"
                         >
                           {post.title}
                         </Link>
                       </CardTitle>
                       {post.excerpt && (
-                        <p className="text-muted-foreground mb-4 text-base leading-relaxed">
+                        <p className="text-muted-foreground mb-4 text-base leading-relaxed transition-colors duration-300 group-hover:text-foreground/80">
                           {post.excerpt}
                         </p>
                       )}
@@ -390,32 +391,28 @@ function BlogPageContent() {
 
                   {/* Meta information */}
                   <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-highlight/10 rounded-full flex items-center justify-center">
-                        <User className="h-4 w-4 text-highlight" />
+                    <div className="flex items-center space-x-2 group/meta">
+                      <div className="w-8 h-8 bg-highlight/10 rounded-full flex items-center justify-center transition-all duration-300 group-hover/meta:bg-highlight/20 group-hover/meta:scale-110">
+                        <User className="h-4 w-4 text-highlight transition-transform duration-300 group-hover/meta:scale-110" />
                       </div>
-                      <span className="font-medium">
+                      <span className="font-medium transition-colors duration-300 group-hover:text-foreground">
                         {post.author.name || post.author.email}
                       </span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-highlight/10 rounded-full flex items-center justify-center">
-                        <Calendar className="h-4 w-4 text-highlight" />
+                    <div className="flex items-center space-x-2 group/meta">
+                      <div className="w-8 h-8 bg-highlight/10 rounded-full flex items-center justify-center transition-all duration-300 group-hover/meta:bg-highlight/20 group-hover/meta:scale-110">
+                        <Calendar className="h-4 w-4 text-highlight transition-transform duration-300 group-hover/meta:scale-110" />
                       </div>
-                      <span>{formatDate(post.createdAt)}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-highlight/10 rounded-full flex items-center justify-center">
-                        <MessageSquare className="h-4 w-4 text-highlight" />
-                      </div>
-                      <span>{post._count?.comments || 0} bình luận</span>
+                      <span className="transition-colors duration-300 group-hover:text-foreground">
+                        {formatDate(post.createdAt)}
+                      </span>
                     </div>
                   </div>
 
                   {/* Tags */}
                   {post.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-4">
-                      {post.tags.map((tag) => (
+                      {post.tags.map((tag, index) => (
                         <Badge
                           key={tag.id}
                           variant={
@@ -432,7 +429,7 @@ function BlogPageContent() {
                               : tag.color,
                             borderColor: tag.color,
                           }}
-                          className="hover:shadow-md hover:scale-105 transition-all duration-200 cursor-pointer"
+                          className="font-medium transition-all duration-300 hover:scale-110 hover:shadow-lg cursor-pointer"
                           onClick={() => handleTagClick(tag.slug)}
                         >
                           <Tag className="mr-1 h-3 w-3" />
@@ -442,14 +439,23 @@ function BlogPageContent() {
                     </div>
                   )}
                 </CardHeader>
-                <CardContent className="pt-0">
+                <CardContent className="relative z-10 pt-0">
                   <Button
                     asChild
-                    className="bg-highlight hover:bg-highlight-dark text-black"
+                    className="group/button bg-gradient-to-r from-highlight to-highlight/90 hover:from-highlight-dark hover:to-highlight text-primary-foreground font-semibold shadow-lg shadow-highlight/30 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-highlight/40"
                   >
-                    <Link href={`/blog/${post.slug}`}>Đọc tiếp →</Link>
+                    <Link
+                      href={`/blog/${post.slug}`}
+                      className="inline-flex items-center gap-2"
+                    >
+                      Đọc thêm
+                      <ArrowLeft className="h-4 w-4 rotate-180 transition-transform duration-300 group-hover/button:translate-x-1" />
+                    </Link>
                   </Button>
                 </CardContent>
+
+                {/* Bottom gradient border on hover */}
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
               </Card>
             ));
           })()}

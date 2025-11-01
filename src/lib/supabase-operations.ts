@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { generateId } from "./uuid";
 
 // Types
 export interface Post {
@@ -8,8 +9,6 @@ export interface Post {
   content: string;
   excerpt: string | null;
   published: boolean;
-  featured: boolean;
-  category: string | null;
   hotScore: number;
   createdAt: string;
   updatedAt: string;
@@ -25,9 +24,6 @@ export interface Post {
     slug: string;
     color: string;
   }[];
-  _count?: {
-    comments: number;
-  };
 }
 
 export interface Comment {
@@ -105,8 +101,6 @@ function transformPost(data: any): Post {
     content: data.content,
     excerpt: data.excerpt,
     published: data.published,
-    featured: data.featured,
-    category: data.category,
     hotScore: data.hotScore,
     createdAt: data.createdAt,
     updatedAt: data.updatedAt,
@@ -125,9 +119,6 @@ function transformPost(data: any): Post {
         slug: pt.jt_tags.slug,
         color: pt.jt_tags.color,
       })) || [],
-    _count: {
-      comments: data.jt_comments?.length || 0,
-    },
   };
 }
 
@@ -278,8 +269,6 @@ export async function createUserWithAccountSupabase(
 export async function getPostsSupabase(
   options: {
     published?: boolean;
-    featured?: boolean;
-    category?: string;
     authorId?: string;
     tagSlugs?: string[];
     limit?: number;
@@ -287,15 +276,7 @@ export async function getPostsSupabase(
   } = {}
 ): Promise<Post[]> {
   try {
-    const {
-      published,
-      featured,
-      category,
-      authorId,
-      tagSlugs,
-      limit = 10,
-      offset = 0,
-    } = options;
+    const { published, authorId, tagSlugs, limit = 10, offset = 0 } = options;
 
     let query = supabase.from("jt_posts").select(`
         id,
@@ -304,8 +285,6 @@ export async function getPostsSupabase(
         content,
         excerpt,
         published,
-        featured,
-        category,
         hotScore,
         createdAt,
         updatedAt,
@@ -322,21 +301,12 @@ export async function getPostsSupabase(
             slug,
             color
           )
-        ),
-        jt_comments (count)
+        )
       `);
 
     // Apply filters
     if (published !== undefined) {
       query = query.eq("published", published);
-    }
-
-    if (featured !== undefined) {
-      query = query.eq("featured", featured);
-    }
-
-    if (category) {
-      query = query.eq("category", category);
     }
 
     if (authorId) {
@@ -352,10 +322,21 @@ export async function getPostsSupabase(
 
     if (error) {
       console.error("❌ Failed to fetch posts:", error);
+      console.error("❌ Error details:", JSON.stringify(error, null, 2));
       return [];
     }
 
-    return data?.map(transformPost) || [];
+    let posts = data?.map(transformPost) || [];
+
+    // Filter by tagSlugs if provided (client-side filtering for now)
+    if (tagSlugs && tagSlugs.length > 0) {
+      posts = posts.filter((post) => {
+        const postTagSlugs = post.tags?.map((tag) => tag.slug) || [];
+        return tagSlugs.some((slug) => postTagSlugs.includes(slug));
+      });
+    }
+
+    return posts;
   } catch (error) {
     console.error("❌ Failed to fetch posts:", error);
     return [];
@@ -376,8 +357,6 @@ export async function getPostBySlugSupabase(
         content,
         excerpt,
         published,
-        featured,
-        category,
         hotScore,
         createdAt,
         updatedAt,
@@ -395,7 +374,9 @@ export async function getPostBySlugSupabase(
             color
           )
         ),
-        jt_comments (count)
+        jt_comments (
+          id
+        )
       `
       )
       .eq("slug", slug)
@@ -419,18 +400,27 @@ export async function createPostSupabase(postData: {
   content: string;
   excerpt?: string;
   published?: boolean;
-  featured?: boolean;
-  category?: string;
   authorId: string;
   tagIds?: string[];
 }): Promise<Post | null> {
   try {
     const { tagIds, ...postFields } = postData;
 
+    // Generate ID for the new post
+    const postId = generateId();
+    const now = new Date().toISOString();
+
     // Create the post
     const { data: post, error: postError } = await supabase
       .from("jt_posts")
-      .insert([postFields])
+      .insert([
+        {
+          ...postFields,
+          id: postId,
+          createdAt: now,
+          updatedAt: now,
+        },
+      ])
       .select()
       .single();
 
@@ -471,8 +461,6 @@ export async function updatePostSupabase(
     content: string;
     excerpt: string;
     published: boolean;
-    featured: boolean;
-    category: string;
     hotScore: number;
   }>
 ): Promise<Post | null> {
@@ -1120,14 +1108,12 @@ export async function getPostStatsSupabase(): Promise<{
   totalPosts: number;
   publishedPosts: number;
   draftPosts: number;
-  featuredPosts: number;
 }> {
   try {
     const [
       { count: totalPosts },
       { count: publishedPosts },
       { count: draftPosts },
-      { count: featuredPosts },
     ] = await Promise.all([
       supabase.from("jt_posts").select("*", { count: "exact", head: true }),
       supabase
@@ -1138,17 +1124,12 @@ export async function getPostStatsSupabase(): Promise<{
         .from("jt_posts")
         .select("*", { count: "exact", head: true })
         .eq("published", false),
-      supabase
-        .from("jt_posts")
-        .select("*", { count: "exact", head: true })
-        .eq("featured", true),
     ]);
 
     return {
       totalPosts: totalPosts || 0,
       publishedPosts: publishedPosts || 0,
       draftPosts: draftPosts || 0,
-      featuredPosts: featuredPosts || 0,
     };
   } catch (error) {
     console.error("❌ Failed to fetch post stats:", error);
@@ -1156,7 +1137,6 @@ export async function getPostStatsSupabase(): Promise<{
       totalPosts: 0,
       publishedPosts: 0,
       draftPosts: 0,
-      featuredPosts: 0,
     };
   }
 }
@@ -1336,12 +1316,16 @@ export async function rejectCommentAdminSupabase(id: string): Promise<boolean> {
 export async function getRecommendedPostsSupabase(
   limit: number = 6
 ): Promise<Post[]> {
-  return getPostsSupabase({
+  // Get random posts for recommendations
+  const allPosts = await getPostsSupabase({
     published: true,
-    featured: true,
-    limit,
+    limit: 100, // Get more posts to randomize
     offset: 0,
   });
+
+  // Shuffle and return limited number
+  const shuffled = allPosts.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, limit);
 }
 
 export async function getPermissionByIdSupabase(

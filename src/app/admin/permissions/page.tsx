@@ -211,7 +211,7 @@ export default function AdminPermissionsPage() {
         <h1 className="text-3xl font-bold">Quản lý quyền</h1>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm} className="bg-primary text-black">
+            <Button onClick={resetForm} variant="default">
               <Plus className="mr-2 h-4 w-4" />
               Tạo quyền mới
             </Button>
@@ -284,7 +284,7 @@ export default function AdminPermissionsPage() {
                   Hủy
                 </Button>
                 <Button
-                  className="bg-primary text-black"
+                  variant="default"
                   onClick={handleCreatePermission}
                 >
                   Tạo quyền
@@ -565,7 +565,7 @@ export default function AdminPermissionsPage() {
                 Hủy
               </Button>
               <Button
-                className="bg-primary text-black"
+                variant="default"
                 onClick={handleUpdatePermission}
               >
                 Cập nhật

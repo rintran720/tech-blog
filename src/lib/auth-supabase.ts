@@ -165,40 +165,50 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async session({ session }) {
-      if (session?.user?.email) {
-        // Chỉ lấy thông tin từ database khi user đã đăng nhập bằng account
-        const dbUser = await getUserByEmailSafe(session.user.email);
-        if (dbUser) {
-          session.user.id = dbUser.id;
-          console.log("📋 Session được cập nhật với thông tin từ database:", {
-            id: dbUser.id,
-            email: dbUser.email,
-          });
-        } else {
-          console.log(
-            "⚠️ Không tìm thấy user trong database cho session:",
-            session.user.email
-          );
+      try {
+        if (session?.user?.email) {
+          // Chỉ lấy thông tin từ database khi user đã đăng nhập bằng account
+          const dbUser = await getUserByEmailSafe(session.user.email);
+          if (dbUser) {
+            session.user.id = dbUser.id;
+            console.log("📋 Session được cập nhật với thông tin từ database:", {
+              id: dbUser.id,
+              email: dbUser.email,
+            });
+          } else {
+            console.log(
+              "⚠️ Không tìm thấy user trong database cho session:",
+              session.user.email
+            );
+          }
         }
+      } catch (error) {
+        console.error("❌ Error in session callback:", error);
+        // Return session without modifications if database query fails
       }
       return session;
     },
     async jwt({ user, token }) {
-      if (user?.email) {
-        // Chỉ lấy thông tin từ database khi user đã đăng nhập bằng account
-        const dbUser = await getUserByEmailSafe(user.email);
-        if (dbUser) {
-          token.uid = dbUser.id;
-          console.log(
-            "🔑 JWT token được cập nhật với user ID từ database:",
-            dbUser.id
-          );
-        } else {
-          console.log(
-            "⚠️ Không tìm thấy user trong database cho JWT:",
-            user.email
-          );
+      try {
+        if (user?.email) {
+          // Chỉ lấy thông tin từ database khi user đã đăng nhập bằng account
+          const dbUser = await getUserByEmailSafe(user.email);
+          if (dbUser) {
+            token.uid = dbUser.id;
+            console.log(
+              "🔑 JWT token được cập nhật với user ID từ database:",
+              dbUser.id
+            );
+          } else {
+            console.log(
+              "⚠️ Không tìm thấy user trong database cho JWT:",
+              user.email
+            );
+          }
         }
+      } catch (error) {
+        console.error("❌ Error in jwt callback:", error);
+        // Return token without modifications if database query fails
       }
       return token;
     },

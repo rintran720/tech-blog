@@ -11,8 +11,6 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const published = searchParams.get("published") === "true";
-    const featured = searchParams.get("featured");
-    const category = searchParams.get("category");
     const authorId = searchParams.get("authorId");
     const tagSlugs = searchParams.get("tagSlugs");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -46,16 +44,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const {
-      title,
-      slug,
-      content,
-      excerpt,
-      category,
-      tagNames,
-      published,
-      featured,
-    } = body;
+    const { title, slug, content, excerpt, category, tagNames, published } =
+      body;
 
     if (!title || !slug || !content) {
       return NextResponse.json(

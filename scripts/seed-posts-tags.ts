@@ -707,8 +707,6 @@ TypeScript giúp bạn viết code React an toàn và dễ bảo trì. Hãy áp 
         content: post.content,
         excerpt: post.excerpt,
         published: true,
-        featured: Math.random() > 0.7, // Random featured
-        category: post.category,
         hotScore: Math.floor(Math.random() * 100),
         authorId: adminUser.id,
         createdAt: new Date().toISOString(),

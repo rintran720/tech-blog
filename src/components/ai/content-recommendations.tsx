@@ -83,15 +83,13 @@ export function ContentRecommendations({
         recs.push(...similarPosts);
       }
 
-      // 2. Trending posts (featured + recent)
+      // 2. Trending posts (recent)
       // Use a fixed date to prevent hydration mismatch
       const thirtyDaysAgo = new Date("2024-01-01");
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const trendingPosts = allPosts
-        .filter(
-          (post) => post.featured || new Date(post.publishedAt) > thirtyDaysAgo
-        )
+        .filter((post) => new Date(post.publishedAt) > thirtyDaysAgo)
         .sort(
           (a, b) =>
             new Date(b.publishedAt).getTime() -
